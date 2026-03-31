@@ -1,0 +1,41 @@
+update_indicators:
+  cron: "*/15 * * * *"
+  class: "UpdateIndicatorsJob"
+  queue: default
+  description: "Update technical indicators every 15 minutes"
+
+check_news:
+  cron: "*/30 * * * *"
+  class: "CheckNewsJob"
+  queue: default
+  description: "Check financial news every 30 minutes"
+
+sync_subscriptions:
+  cron: "*/5 * * * *"
+  class: "SyncSubscriptionsJob"
+  queue: streaming
+  description: "Sync WebSocket subscriptions every 5 minutes"
+
+morning_briefing:
+  cron: "0 8 * * 1-5"
+  class: "MorningBriefingJob"
+  queue: default
+  description: "Morning market briefing at 8:00 AM Mon-Fri"
+
+daily_summary:
+  cron: "0 17 * * 1-5"
+  class: "DailySummaryJob"
+  queue: default
+  description: "Daily market summary at 5:00 PM Mon-Fri"
+
+weekly_report:
+  cron: "0 20 * * 0"
+  class: "WeeklyReportJob"
+  queue: low
+  description: "Weekly portfolio report at 8:00 PM Sunday"
+
+cleanup_snapshots:
+  cron: "0 3 * * *"
+  class: "CleanupSnapshotsJob"
+  queue: low
+  description: "Clean old price snapshots at 3:00 AM daily"

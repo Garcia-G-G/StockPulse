@@ -1,0 +1,8 @@
+<h2>Daily Market Summary - <%= Date.today.strftime("%B %d, %Y") %></h2>
+<% @summary_data[:items]&.each do |item| %>
+  <div>
+    <strong><%= item[:symbol] %></strong>: $<%= item[:price] %> (<%= item[:change_pct] %>%)
+  </div>
+<% end %>
+<hr>
+<p><small>StockPulse - Real-time Stock Monitoring</small></p>
