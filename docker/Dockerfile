@@ -1,38 +1,52 @@
-FROM ruby:3.4-slim AS base
+# Stage 1: Builder
+FROM ruby:3.4-slim AS builder
+
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    build-essential git libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y \
-    libpq-dev curl && \
-    rm -rf /var/lib/apt/lists/*
-
-FROM base AS build
-
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y \
-    build-essential git nodejs npm && \
-    rm -rf /var/lib/apt/lists/*
-
 COPY Gemfile Gemfile.lock ./
-RUN bundle config set --local deployment true && \
-    bundle config set --local without "development test" && \
-    bundle install
+RUN bundle config set frozen true && \
+    bundle config set without "development test" && \
+    bundle install --jobs 4 --retry 3 && \
+    bundle clean --force && \
+    rm -rf /usr/local/bundle/cache/*.gem
 
 COPY . .
 
-RUN bundle exec rails assets:precompile SECRET_KEY_BASE=dummy
+RUN SECRET_KEY_BASE=dummy RAILS_ENV=production \
+    bundle exec rake assets:precompile
 
-FROM base
+# Stage 2: Runtime
+FROM ruby:3.4-slim
 
-COPY --from=build /app /app
-COPY --from=build /usr/local/bundle /usr/local/bundle
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    curl libpq5 tzdata && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN useradd rails --create-home --shell /bin/bash && \
-    chown -R rails:rails /app
+RUN groupadd --system stockpulse && \
+    useradd --system --gid stockpulse --create-home --shell /bin/bash stockpulse
 
-USER rails:rails
+WORKDIR /app
+
+COPY --from=builder /usr/local/bundle /usr/local/bundle
+COPY --from=builder --chown=stockpulse:stockpulse /app /app
+
+ENV RAILS_ENV=production \
+    RACK_ENV=production \
+    BUNDLE_PATH=/usr/local/bundle \
+    RAILS_LOG_TO_STDOUT=true \
+    RAILS_SERVE_STATIC_FILES=true
+
+USER stockpulse
 
 EXPOSE 3000
 
-CMD ["bundle", "exec", "thrust", "bin/rails", "server"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:3000/api/v1/health || exit 1
+
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
