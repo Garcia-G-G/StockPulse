@@ -25,7 +25,7 @@ gem "jbuilder", "~> 2.11"
 gem "jsonapi-serializer"
 gem "rack-cors"
 gem "rack-attack"
-gem "pagy", "~> 8.0"
+gem "pagy", "~> 43.4"
 gem "oj"
 
 # HTTP Clients
