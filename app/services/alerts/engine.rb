@@ -219,13 +219,11 @@ module Alerts
       )
     end
 
-    def enqueue_notification(alert, user, result, _history)
-      message = result[:message] || "Alert triggered: #{alert.alert_type} for #{alert.symbol}"
-
+    def enqueue_notification(alert, user, _result, context_data)
       SendNotificationJob.perform_later(
         user_id: user.id,
-        message: message,
-        channels: alert.notification_channels
+        alert_id: alert.id,
+        aggregated_price: context_data
       )
     end
 
