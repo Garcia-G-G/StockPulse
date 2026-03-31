@@ -2,14 +2,21 @@
 
 class PricesChannel < ApplicationCable::Channel
   def subscribed
-    stream_from "prices"
+    symbol = params[:symbol]
+
+    if symbol.present?
+      stream_from "prices:#{symbol}"
+    else
+      stream_from "prices:all"
+    end
   end
 
   def unsubscribed
-    # Cleanup when channel is unsubscribed
+    stop_all_streams
   end
 
   def self.broadcast_price(symbol, data)
-    ActionCable.server.broadcast("prices", { symbol: symbol, **data })
+    ActionCable.server.broadcast("prices:#{symbol}", data)
+    ActionCable.server.broadcast("prices:all", data)
   end
 end
