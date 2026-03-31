@@ -31,5 +31,4 @@ class WatchlistItemSerializer
   include JSONAPI::Serializer
 
   attributes :symbol, :company_name, :exchange, :asset_type, :priority, :is_active, :created_at
-  belongs_to :user
 end

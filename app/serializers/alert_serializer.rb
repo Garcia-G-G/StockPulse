@@ -38,5 +38,4 @@ class AlertSerializer
   attributes :symbol, :alert_type, :condition, :notification_channels, :cooldown_minutes,
              :is_enabled, :is_one_time, :last_triggered_at, :trigger_count, :max_triggers,
              :ai_analysis_enabled, :notes, :created_at
-  belongs_to :user
 end

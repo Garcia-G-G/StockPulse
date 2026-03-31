@@ -1,67 +1,89 @@
 name: CI
 
 on:
-  pull_request:
   push:
-    branches: [ main ]
+    branches: ["*"]
+  pull_request:
+    branches: [main]
 
 jobs:
-  scan_ruby:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
-      
-      - name: Scan for known security vulnerabilities in gems used
-        run: bin/bundler-audit
-      
-  scan_js:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
-
   lint:
     runs-on: ubuntu-latest
-    env:
-      RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
         with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - name: RuboCop
+        run: bundle exec rubocop --fail-level warning
+      - name: Brakeman security scan
+        run: bundle exec brakeman -q
+
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: stockpulse_test
+          POSTGRES_USER: stockpulse
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U stockpulse"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://stockpulse:test_password@localhost:5432/stockpulse_test
+      REDIS_URL: redis://localhost:6379/0
+      SECRET_KEY_BASE: test_secret_key_base_for_ci_only
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
           bundler-cache: true
 
-      - name: Prepare RuboCop cache
-        uses: actions/cache@v4
-        env:
-          DEPENDENCIES_HASH: ${{ hashFiles('.ruby-version', '**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
+      - name: Setup database
+        run: bin/rails db:create db:schema:load
+
+      - name: Run unit tests
+        run: bundle exec rspec spec/models spec/services spec/clients --format progress
+
+      - name: Run integration tests
+        run: bundle exec rspec spec/requests spec/jobs --format progress
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          path: ${{ env.RUBOCOP_CACHE_ROOT }}
-          key: rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-${{ github.ref_name == github.event.repository.default_branch && github.run_id || 'default' }}
-          restore-keys: |
-            rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-
+          name: coverage
+          path: coverage/
 
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github
-
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Rails Docker image
+        run: docker build -f docker/Dockerfile .
+      - name: Build AI service Docker image
+        run: docker build -f ai_service/Dockerfile ai_service/

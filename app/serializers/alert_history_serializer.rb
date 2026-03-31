@@ -39,6 +39,4 @@ class AlertHistorySerializer
   attributes :symbol, :alert_type, :triggered_at, :price_at_trigger, :previous_price,
              :change_percent, :volume_at_trigger, :indicator_values, :condition_snapshot,
              :notification_results, :ai_analysis, :ai_importance_score
-  belongs_to :alert
-  belongs_to :user
 end

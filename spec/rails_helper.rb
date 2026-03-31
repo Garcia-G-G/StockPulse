@@ -5,6 +5,13 @@ SimpleCov.start "rails" do
   add_filter "/spec/"
   add_filter "/config/"
   add_filter "/vendor/"
+  add_group "Models", "app/models"
+  add_group "Services", "app/services"
+  add_group "Clients", "app/clients"
+  add_group "Controllers", "app/controllers"
+  add_group "Jobs", "app/jobs"
+  add_group "Mailers", "app/mailers"
+  minimum_coverage 25
 end
 
 require "spec_helper"
@@ -22,6 +29,9 @@ begin
 rescue ActiveRecord::PendingMigrationError => e
   abort e.to_s.strip
 end
+
+# Load support files
+Rails.root.glob("spec/support/**/*.rb").sort_by(&:to_s).each { |f| require f }
 
 RSpec.configure do |config|
   config.fixture_paths = [ Rails.root.join("spec/fixtures") ]
@@ -48,6 +58,21 @@ RSpec.configure do |config|
     else
       Sidekiq::Testing.fake!
     end
+  end
+
+  # Clean Redis state between tests
+  config.before do
+    REDIS_POOL.with do |redis|
+      redis.keys("alert_state:*").each { |k| redis.del(k) }
+      redis.keys("alert_dedup:*").each { |k| redis.del(k) }
+      redis.keys("user_alerts:*").each { |k| redis.del(k) }
+      redis.keys("alerts:enabled:*").each { |k| redis.del(k) }
+      redis.keys("ratelimit:*").each { |k| redis.del(k) }
+      redis.keys("circuit:*").each { |k| redis.del(k) }
+      redis.keys("cache:*").each { |k| redis.del(k) }
+    end
+  rescue Redis::CannotConnectError
+    # Redis not available in test, skip cleanup
   end
 
   # WebMock

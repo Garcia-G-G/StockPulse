@@ -69,7 +69,7 @@ module Notifications
         f.request :json
         f.response :json, parser_options: { symbolize_names: true }
         f.response :raise_error
-        f.adapter :typhoeus
+        f.adapter Faraday.default_adapter
       end
     end
 
