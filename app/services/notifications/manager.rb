@@ -9,8 +9,8 @@ module Notifications
     }.freeze
 
     def notify(user:, message:, channels: nil)
-      channels ||= user.notification_channels
-      return if user.notifications_muted?
+      channels ||= user.enabled_channels
+      return if user.muted?
 
       channels.each do |channel|
         sender_class = SENDERS[channel.to_sym]&.constantize

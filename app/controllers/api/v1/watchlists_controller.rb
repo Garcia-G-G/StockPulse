@@ -30,7 +30,7 @@ module Api
       private
 
       def watchlist_params
-        params.require(:watchlist_item).permit(:symbol, :name, :exchange)
+        params.require(:watchlist_item).permit(:symbol, :company_name, :exchange, :asset_type, :priority, :notes)
       end
     end
   end

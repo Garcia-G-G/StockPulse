@@ -72,7 +72,7 @@ group :development, :test do
 end
 
 group :development do
-  gem "annotate"
+  gem "annotaterb"
   gem "letter_opener"
   gem "web-console"
   gem "kamal", "~> 2.0", require: false

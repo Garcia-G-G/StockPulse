@@ -18,7 +18,7 @@ module Api
       def metrics
         render json: {
           watchlist_items: WatchlistItem.active.count,
-          active_alerts: Alert.active.count,
+          active_alerts: Alert.enabled.count,
           alerts_triggered_today: AlertHistory.today.count,
           price_snapshots: PriceSnapshot.count,
           sidekiq_queues: Sidekiq::Stats.new.queues

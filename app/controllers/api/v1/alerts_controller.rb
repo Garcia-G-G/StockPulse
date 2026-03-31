@@ -4,7 +4,7 @@ module Api
   module V1
     class AlertsController < BaseController
       def index
-        alerts = current_user.alerts.active
+        alerts = current_user.alerts.enabled
         render json: AlertSerializer.new(alerts).serializable_hash
       end
 
@@ -33,7 +33,9 @@ module Api
       private
 
       def alert_params
-        params.require(:alert).permit(:symbol, :alert_type, :cooldown_minutes, :active, condition: {}, channels: [])
+        params.require(:alert).permit(:symbol, :alert_type, :cooldown_minutes, :is_enabled, :is_one_time,
+                                      :max_triggers, :ai_analysis_enabled, :notes, condition: {},
+                                      notification_channels: [])
       end
     end
   end

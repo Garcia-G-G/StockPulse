@@ -5,21 +5,27 @@ module Alerts
     EVALUATORS = {
       "price_above" => "Alerts::PriceEvaluator",
       "price_below" => "Alerts::PriceEvaluator",
-      "price_change_pct" => "Alerts::PriceEvaluator",
+      "percent_change_up" => "Alerts::PriceEvaluator",
+      "percent_change_down" => "Alerts::PriceEvaluator",
+      "price_range_break" => "Alerts::PriceEvaluator",
       "rsi_overbought" => "Alerts::TechnicalEvaluator",
       "rsi_oversold" => "Alerts::TechnicalEvaluator",
-      "macd_crossover" => "Alerts::TechnicalEvaluator",
-      "bollinger_breakout" => "Alerts::TechnicalEvaluator",
+      "macd_crossover_bullish" => "Alerts::TechnicalEvaluator",
+      "macd_crossover_bearish" => "Alerts::TechnicalEvaluator",
+      "bollinger_break_upper" => "Alerts::TechnicalEvaluator",
+      "bollinger_break_lower" => "Alerts::TechnicalEvaluator",
+      "sma_golden_cross" => "Alerts::TechnicalEvaluator",
+      "sma_death_cross" => "Alerts::TechnicalEvaluator",
       "volume_spike" => "Alerts::VolumeEvaluator",
-      "news_sentiment" => "Alerts::NewsEvaluator",
-      "multi_condition" => "Alerts::MultiConditionEvaluator"
+      "volume_dry" => "Alerts::VolumeEvaluator",
+      "news_high_impact" => "Alerts::NewsEvaluator"
     }.freeze
 
     def evaluate_all(symbol:, price_data:, technical_data: nil, news_data: nil)
-      alerts = Alert.active_alerts.for_symbol(symbol)
+      alerts = Alert.enabled.for_symbol(symbol)
 
       alerts.filter_map do |alert|
-        next if alert.cooldown_active?
+        next if alert.in_cooldown?
 
         evaluate_alert(alert, price_data: price_data, technical_data: technical_data, news_data: news_data)
       end
