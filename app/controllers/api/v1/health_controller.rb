@@ -3,6 +3,8 @@
 module Api
   module V1
     class HealthController < BaseController
+      skip_before_action :authenticate_user!, only: :show
+
       def show
         checks = {
           status: "ok",

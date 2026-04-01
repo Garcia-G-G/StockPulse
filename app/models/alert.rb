@@ -51,6 +51,7 @@ class Alert < ApplicationRecord
   validates :alert_type, presence: true, inclusion: { in: ALL_TYPES }
   validates :cooldown_minutes, numericality: { only_integer: true, in: 1..1440 }
   validates :trigger_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :max_triggers, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
   validate :validate_condition_for_type
 
   scope :price_alerts, -> { where(alert_type: PRICE_TYPES) }

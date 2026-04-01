@@ -149,18 +149,8 @@ module Streaming
 
     # --- Alert Evaluation ---
 
-    def evaluate_alerts(symbol, payload)
-      Alerts::Engine.new.evaluate_all(
-        symbol: symbol,
-        price_data: {
-          current_price: payload[:price],
-          previous_close: @previous_closes[symbol],
-          change_percent: payload[:change_percent],
-          volume: payload[:volume],
-          high: payload[:high],
-          low: payload[:low]
-        }
-      )
+    def evaluate_alerts(_symbol, payload)
+      Alerts::Engine.new.evaluate(payload)
     rescue StandardError => e
       Rails.logger.error("[TradeAggregator] Alert evaluation error for #{symbol}: #{e.message}")
     end

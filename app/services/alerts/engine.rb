@@ -131,19 +131,12 @@ module Alerts
       key = "user_alerts:#{user.id}:#{Time.current.strftime('%Y%m%d%H%M')}"
 
       count = REDIS_POOL.with do |redis|
-        current = redis.get(key).to_i
-        if current >= max_per_min
-          current
-        else
-          redis.multi do |tx|
-            tx.incr(key)
-            tx.expire(key, 120)
-          end
-          current
-        end
+        current = redis.incr(key)
+        redis.expire(key, 120) if current == 1
+        current
       end
 
-      if count >= max_per_min
+      if count > max_per_min
         [ false, "rate limit exceeded (#{count}/#{max_per_min} per minute)" ]
       else
         [ true, nil ]
@@ -151,13 +144,12 @@ module Alerts
     end
 
     def check_dedup(alert, result)
-      trigger_hash = Digest::MD5.hexdigest(result.except(:triggered).to_json)
+      trigger_hash = Digest::SHA256.hexdigest(result.except(:triggered).to_json)
       key = "alert_dedup:#{alert.id}:#{trigger_hash}"
 
       already_sent = REDIS_POOL.with do |redis|
-        existing = redis.get(key)
-        redis.setex(key, DEDUP_TTL, "1") unless existing
-        existing.present?
+        # SET NX is atomic — returns true only if key was newly set
+        !redis.set(key, "1", ex: DEDUP_TTL, nx: true)
       end
 
       if already_sent

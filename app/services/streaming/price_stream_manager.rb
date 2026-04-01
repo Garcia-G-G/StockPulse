@@ -294,18 +294,18 @@ module Streaming
 
     def start_command_listener_thread
       Thread.new do
-        REDIS_POOL.with do |redis|
-          pubsub = Redis.new(url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"))
-          pubsub.subscribe("stream:commands") do |on|
-            on.message do |_channel, message|
-              break unless @running
+        pubsub = Redis.new(url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"))
+        pubsub.subscribe("stream:commands") do |on|
+          on.message do |_channel, message|
+            break unless @running
 
-              handle_command(message)
-            end
+            handle_command(message)
           end
-        rescue StandardError => e
-          Rails.logger.error("[PriceStreamManager] Command listener error: #{e.message}")
         end
+      rescue StandardError => e
+        Rails.logger.error("[PriceStreamManager] Command listener error: #{e.message}")
+      ensure
+        pubsub&.close
       end
     end
 
@@ -328,8 +328,7 @@ module Streaming
     def setup_signal_handlers
       %w[TERM INT].each do |signal|
         Signal.trap(signal) do
-          Rails.logger.info("[PriceStreamManager] Received SIG#{signal}, shutting down")
-          stop
+          @running = false
         end
       end
     end

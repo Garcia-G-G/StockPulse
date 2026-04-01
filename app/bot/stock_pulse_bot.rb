@@ -173,6 +173,7 @@ class StockPulseBot
   def cmd_precio(message, _user, args)
     symbol = args&.first&.upcase
     return reply(message, "\u{26A0}\u{FE0F} Uso: /precio AAPL") unless symbol
+    return reply(message, "\u{274C} Símbolo inválido\\. Usa 1\\-10 letras\\.") unless valid_symbol?(symbol)
 
     reply(message, "\u{23F3} Consultando #{esc(symbol)}\\.\\.\\.")
 
@@ -575,20 +576,16 @@ class StockPulseBot
 
   def resolve_user(message)
     chat_id = message.chat.id.to_s
-    User.find_by(telegram_chat_id: chat_id) || User.create!(
-      username: message.from&.username || "tg_#{chat_id}",
-      telegram_chat_id: chat_id,
-      email: nil
-    )
+    User.find_or_create_by!(telegram_chat_id: chat_id) do |u|
+      u.username = message.from&.username || "tg_#{chat_id}"
+    end
   end
 
   def resolve_user_from_callback(callback)
     chat_id = callback.message.chat.id.to_s
-    User.find_by(telegram_chat_id: chat_id) || User.create!(
-      username: callback.from&.username || "tg_#{chat_id}",
-      telegram_chat_id: chat_id,
-      email: nil
-    )
+    User.find_or_create_by!(telegram_chat_id: chat_id) do |u|
+      u.username = callback.from&.username || "tg_#{chat_id}"
+    end
   end
 
   # --- Telegram API Helpers ---
@@ -650,13 +647,16 @@ class StockPulseBot
     num.to_i.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
   end
 
+  def valid_symbol?(symbol)
+    symbol.match?(/\A[A-Z0-9.]{1,10}\z/)
+  end
+
   # --- Signal Handling ---
 
   def setup_signal_handlers
     %w[TERM INT].each do |signal|
       Signal.trap(signal) do
         @running = false
-        Rails.logger.info("[TelegramBot] Received SIG#{signal}, shutting down")
       end
     end
   end

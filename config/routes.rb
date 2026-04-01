@@ -1,10 +1,16 @@
+# frozen_string_literal: true
+
 require "sidekiq/web"
 
 Rails.application.routes.draw do
   # Hotwire Dashboard
   root "dashboard#index"
 
-  # Sidekiq Web UI (protected)
+  # Sidekiq Web UI (protected with HTTP basic auth)
+  Sidekiq::Web.use Rack::Auth::Basic do |username, password|
+    ActiveSupport::SecurityUtils.secure_compare(username, ENV.fetch("SIDEKIQ_USERNAME", "admin")) &
+      ActiveSupport::SecurityUtils.secure_compare(password, ENV.fetch("SIDEKIQ_PASSWORD", ""))
+  end
   mount Sidekiq::Web => "/sidekiq"
 
   # ActionCable

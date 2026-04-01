@@ -105,13 +105,9 @@ class BaseClient
 
   def check_rate_limit!
     REDIS_POOL.with do |redis|
-      count = redis.get(rate_limit_key).to_i
-      raise RateLimitExceeded, "[#{api_name}] Rate limit exceeded (#{count}/#{rate_limit})" if count >= rate_limit
-
-      redis.multi do |tx|
-        tx.incr(rate_limit_key)
-        tx.expire(rate_limit_key, rate_period)
-      end
+      count = redis.incr(rate_limit_key)
+      redis.expire(rate_limit_key, rate_period) if count == 1
+      raise RateLimitExceeded, "[#{api_name}] Rate limit exceeded (#{count}/#{rate_limit})" if count > rate_limit
     end
   end
 
@@ -135,12 +131,9 @@ class BaseClient
 
   def record_success!
     REDIS_POOL.with do |redis|
-      state = redis.get(circuit_state_key)
-      if state == "half_open"
-        redis.set(circuit_state_key, "closed")
-        redis.del(circuit_failures_key)
-      else
-        redis.del(circuit_failures_key)
+      redis.multi do |tx|
+        tx.set(circuit_state_key, "closed")
+        tx.del(circuit_failures_key)
       end
     end
   end
@@ -150,10 +143,11 @@ class BaseClient
       failures = redis.incr(circuit_failures_key)
       redis.expire(circuit_failures_key, CIRCUIT_RECOVERY_TIMEOUT * 2)
 
-      state = redis.get(circuit_state_key)
-      if state == "half_open" || failures >= CIRCUIT_FAILURE_THRESHOLD
-        redis.set(circuit_state_key, "open")
-        redis.set(circuit_opened_at_key, Time.current.to_f.to_s)
+      if failures >= CIRCUIT_FAILURE_THRESHOLD
+        redis.multi do |tx|
+          tx.set(circuit_state_key, "open")
+          tx.set(circuit_opened_at_key, Time.current.to_f.to_s)
+        end
       end
     end
   end
