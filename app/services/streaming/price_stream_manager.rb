@@ -11,10 +11,18 @@ module Streaming
     MAX_BACKOFF = 60
     REST_POLL_INTERVAL = 60
 
-    US_HOLIDAYS_2026 = %w[
-      2026-01-01 2026-01-19 2026-02-16 2026-04-03 2026-05-25
-      2026-07-03 2026-09-07 2026-11-26 2026-12-25
-    ].freeze
+    # Major US market holidays — keyed by year, generated dynamically
+    def self.us_market_holidays(year)
+      [
+        Date.new(year, 1, 1),                                                    # New Year's Day
+        Date.new(year, 1, 1).upto(Date.new(year, 1, 31)).find { |d| d.monday? && d.day > 14 && d.day <= 21 }, # MLK Day (3rd Mon Jan)
+        Date.new(year, 2, 1).upto(Date.new(year, 2, 28)).find { |d| d.monday? && d.day > 14 && d.day <= 21 }, # Presidents Day (3rd Mon Feb)
+        Date.new(year, 7, 4),                                                    # Independence Day
+        Date.new(year, 9, 1).upto(Date.new(year, 9, 7)).find { |d| d.monday? },  # Labor Day (1st Mon Sep)
+        Date.new(year, 11, 1).upto(Date.new(year, 11, 30)).find { |d| d.thursday? && d.day > 21 && d.day <= 28 }, # Thanksgiving (4th Thu Nov)
+        Date.new(year, 12, 25)                                                   # Christmas
+      ].compact.map { |d| d.strftime("%Y-%m-%d") }
+    end
 
     attr_reader :aggregator
 
@@ -97,7 +105,7 @@ module Streaming
     def market_open?
       et = Time.current.in_time_zone("Eastern Time (US & Canada)")
       return false unless (1..5).cover?(et.wday)
-      return false if US_HOLIDAYS_2026.include?(et.strftime("%Y-%m-%d"))
+      return false if self.class.us_market_holidays(et.year).include?(et.strftime("%Y-%m-%d"))
 
       market_open = et.change(hour: 9, min: 30)
       market_close = et.change(hour: 16, min: 0)

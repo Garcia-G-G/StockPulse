@@ -180,7 +180,7 @@ class BaseClient
 
   def build_cache_key(path, params)
     sorted = params.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}=#{v}" }.join("&")
-    digest = Digest::MD5.hexdigest(sorted)
+    digest = Digest::SHA256.hexdigest(sorted)
     "cache:#{api_name}:#{path}:#{digest}"
   end
 end

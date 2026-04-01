@@ -103,11 +103,13 @@ module Streaming
 
       vwap = window[:vwap_denominator] > 0 ? (window[:vwap_numerator] / window[:vwap_denominator]).round(4) : window[:close]
 
-      previous_close = @previous_closes[symbol]
-      change = previous_close ? (window[:close] - previous_close).round(4) : nil
-      change_percent = previous_close && previous_close > 0 ? ((change / previous_close) * 100).round(4) : nil
-
-      @previous_closes[symbol] = window[:close]
+      previous_close, change, change_percent = @mutex.synchronize do
+        prev = @previous_closes[symbol]
+        ch = prev ? (window[:close] - prev).round(4) : nil
+        ch_pct = prev && prev > 0 ? ((ch / prev) * 100).round(4) : nil
+        @previous_closes[symbol] = window[:close]
+        [ prev, ch, ch_pct ]
+      end
 
       payload = {
         symbol: symbol,
