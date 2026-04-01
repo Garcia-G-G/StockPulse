@@ -1,7 +1,1 @@
-if ENV["TELEGRAM_BOT_TOKEN"].present?
-  Telegram::Bot::Client.define do |config|
-    config.bots = {
-      default: ENV["TELEGRAM_BOT_TOKEN"]
-    }
-  end
-end
+require "telegram/bot" if ENV["TELEGRAM_BOT_TOKEN"].present? && !ENV["TELEGRAM_BOT_TOKEN"].start_with?("your_")

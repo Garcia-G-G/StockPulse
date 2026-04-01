@@ -7,6 +7,13 @@ FactoryBot.define do
     email { Faker::Internet.email }
     timezone { "US/Eastern" }
     is_active { true }
+    notification_preferences do
+      {
+        telegram: { enabled: true },
+        whatsapp: { enabled: false },
+        email: { enabled: true, digest_only: false }
+      }
+    end
 
     trait :with_whatsapp do
       whatsapp_number { "+1#{Faker::Number.number(digits: 10)}" }
