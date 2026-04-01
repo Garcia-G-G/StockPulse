@@ -6,6 +6,18 @@ RSpec.describe "API V1 Watchlists", type: :request do
   let!(:user) { create(:user) }
   let(:headers) { { "X-Telegram-Chat-Id" => user.telegram_chat_id } }
 
+  describe "authentication" do
+    it "returns 401 without auth header" do
+      get "/api/v1/watchlists"
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns 401 with invalid chat id" do
+      get "/api/v1/watchlists", headers: { "X-Telegram-Chat-Id" => "nonexistent" }
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
   describe "GET /api/v1/watchlists" do
     it "returns user watchlist items" do
       create(:watchlist_item, user: user)
