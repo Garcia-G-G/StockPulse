@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-navy: #0A0F1C;
+  --color-navy-light: #111827;
+  --color-navy-lighter: #1A2035;
+  --color-surface: #161B2E;
+  --color-surface-hover: #1E2540;
+  --color-border: rgba(245, 166, 35, 0.12);
+  --color-border-subtle: rgba(240, 237, 232, 0.06);
+  --color-amber: #F5A623;
+  --color-amber-dim: rgba(245, 166, 35, 0.15);
+  --color-teal: #00D4AA;
+  --color-teal-dim: rgba(0, 212, 170, 0.12);
+  --color-bull: #22C55E;
+  --color-bull-dim: rgba(34, 197, 94, 0.12);
+  --color-bear: #EF4444;
+  --color-bear-dim: rgba(239, 68, 68, 0.12);
+  --color-text-primary: #F0EDE8;
+  --color-text-secondary: #9CA3AF;
+  --color-text-muted: #6B7280;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --animate-flash-green: flash-green 0.6s ease-out;
+  --animate-flash-red: flash-red 0.6s ease-out;
+  --animate-slide-in: slide-in 0.3s ease-out;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+  --animate-ticker: ticker 30s linear infinite;
+}
+
+@keyframes flash-green { 0% { background-color: rgba(34,197,94,0.3); } 100% { background-color: transparent; } }
+@keyframes flash-red { 0% { background-color: rgba(239,68,68,0.3); } 100% { background-color: transparent; } }
+@keyframes slide-in { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+@keyframes ticker { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
+
+* { scrollbar-width: thin; scrollbar-color: var(--color-surface-hover) transparent; }
+
+body {
+  background: var(--color-navy);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.font-mono, [data-price] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-muted); }

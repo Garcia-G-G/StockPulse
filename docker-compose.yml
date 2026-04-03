@@ -196,6 +196,21 @@ services:
     networks:
       - stockpulse_network
 
+  frontend:
+    build:
+      context: ./stockpulse-web
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=http://app:3000/api/v1
+      - NEXT_PUBLIC_WS_URL=ws://app:3000/cable
+    ports:
+      - "3001:3001"
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - stockpulse_network
+
   nginx:
     image: nginx:alpine
     ports:
