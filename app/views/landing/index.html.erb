@@ -165,11 +165,10 @@
 <section class="cta" data-controller="landing--reveal">
   <h2 class="rv">Start tracking the<br><span class="shimmer">markets today</span></h2>
   <p class="rv rv-d1">Free tier includes real-time data, 5 alerts, and AI analysis.</p>
-  <%= form_for(User.new, url: user_registration_path, html: { class: "cta-form rv rv-d2" }) do |f| %>
-    <%= f.hidden_field :name, value: "Trader" %>
-    <%= f.email_field :email, class: "cta-input", placeholder: "Enter your email", required: true %>
-    <%= f.submit "Get Started", class: "btn-primary" %>
-  <% end %>
+  <form class="cta-form rv rv-d2" action="<%= new_user_registration_path %>" method="get">
+    <input type="email" name="email" class="cta-input" placeholder="Enter your email" required>
+    <button type="submit" class="btn-primary">Get Started</button>
+  </form>
   <div class="cta-note rv rv-d3">No credit card required · Join 12,000+ traders</div>
 </section>
 

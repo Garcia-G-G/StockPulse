@@ -43,7 +43,8 @@
           </div>
           <div class="profile-field">
             <label class="profile-label">Email</label>
-            <%= f.email_field :email, class: "profile-input" %>
+            <input type="email" class="profile-input" value="<%= @user.email %>" disabled style="opacity:0.6">
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Change email via <a href="<%= edit_user_registration_path %>" style="color:var(--accent)">account settings</a></div>
           </div>
         </div>
 

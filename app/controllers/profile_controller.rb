@@ -19,6 +19,6 @@ class ProfileController < ApplicationController
   private
 
   def profile_params
-    params.require(:user).permit(:name, :email, :telegram_chat_id, :whatsapp_number)
+    params.require(:user).permit(:name, :telegram_chat_id, :whatsapp_number)
   end
 end

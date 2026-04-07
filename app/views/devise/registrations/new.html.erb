@@ -22,7 +22,7 @@
       </div>
       <div class="auth-field">
         <label class="auth-label">Email</label>
-        <%= f.email_field :email, class: "auth-input", placeholder: "you@example.com", required: true %>
+        <%= f.email_field :email, class: "auth-input", placeholder: "you@example.com", required: true, value: resource.email.presence || params[:email] %>
       </div>
       <div class="auth-field">
         <label class="auth-label">Password</label>

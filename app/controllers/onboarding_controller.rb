@@ -24,14 +24,19 @@ class OnboardingController < ApplicationController
       render json: { success: true, next_step: 3 }
     when 3
       symbol = params.dig(:data, :symbol)
-      condition = params.dig(:data, :condition)
-      if symbol.present? && condition.present?
-        current_user.alerts.create(
-          symbol: symbol.upcase,
-          alert_type: "price_above",
-          condition: condition,
-          channels: { email: true }
-        )
+      raw_condition = params.dig(:data, :condition)
+      if symbol.present? && raw_condition.is_a?(ActionController::Parameters)
+        direction = raw_condition[:direction]
+        price = raw_condition[:price].to_f
+        if %w[above below].include?(direction) && price > 0
+          alert_type = direction == "above" ? "price_above" : "price_below"
+          current_user.alerts.create(
+            symbol: symbol.upcase,
+            alert_type: alert_type,
+            condition: { direction: direction, price: price },
+            channels: { email: true }
+          )
+        end
       end
       render json: { success: true, next_step: 4 }
     when 4
@@ -40,7 +45,12 @@ class OnboardingController < ApplicationController
       whatsapp = params.dig(:data, :whatsapp_number)
       updates[:telegram_chat_id] = telegram if telegram.present?
       updates[:whatsapp_number] = whatsapp if whatsapp.present?
-      current_user.update(updates) if updates.any?
+      if updates.any?
+        unless current_user.update(updates)
+          render json: { success: false, errors: current_user.errors.full_messages }, status: :unprocessable_entity
+          return
+        end
+      end
       render json: { success: true, next_step: 5 }
     when 5
       current_user.update!(onboarding_completed: true)
