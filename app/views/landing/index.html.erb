@@ -1,0 +1,182 @@
+<%# Ambient Background Layers %>
+<div class="aurora"><canvas id="auroraCanvas" data-controller="landing--aurora"></canvas></div>
+<canvas id="particleCanvas" data-controller="landing--particles"></canvas>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="orb orb-4"></div>
+<div class="grid-overlay"></div>
+<div class="noise"></div>
+
+<%# Navigation %>
+<nav class="landing-nav" data-controller="landing--nav-scroll">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 26 26" fill="none"><rect x="2" y="2" width="22" height="22" rx="6" stroke="url(#lg)" stroke-width="1.8"/><polyline points="7,17 10.5,11 15,14 20,7" stroke="url(#lg)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
+    <span>StockPulse</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#ai">AI</a>
+    <a href="<%= new_user_registration_path %>" class="nav-cta">Get Started</a>
+  </div>
+</nav>
+
+<%# Ticker Bar %>
+<div class="ticker-bar" data-controller="landing--ticker">
+  <div class="ticker-track" data-landing--ticker-target="track"></div>
+</div>
+
+<%# Hero %>
+<section class="hero" data-controller="landing--reveal">
+  <div class="hero-badge rv"><span class="live-dot"></span>Markets are open — live data streaming</div>
+  <h1 class="rv rv-d1">Market <span class="gradient-word">intelligence</span><br>in real time</h1>
+  <p class="rv rv-d2">Track stocks, crypto, and forex with sub-second latency. AI-powered alerts catch what you'd miss.</p>
+  <div class="hero-actions rv rv-d3">
+    <a href="<%= new_user_registration_path %>" class="btn-primary">Start free — 30s setup</a>
+    <a href="#features" class="btn-secondary">See it live ↗</a>
+  </div>
+
+  <div class="hero-preview rv rv-d4">
+    <div class="preview-frame">
+      <div class="preview-topbar">
+        <div class="preview-dots"><span></span><span></span><span></span></div>
+        <div class="preview-url">app.stockpulse.io/dashboard</div>
+      </div>
+      <div class="preview-body">
+        <div class="preview-panel" data-controller="landing--portfolio-chart">
+          <div class="panel-header">
+            <span class="panel-title">Portfolio · 24H</span>
+            <span class="panel-title" style="opacity:0.5">S&P 500</span>
+          </div>
+          <div class="panel-value" data-landing--portfolio-chart-target="value">$24,847.32</div>
+          <div class="panel-sub up" data-landing--portfolio-chart-target="change"><span class="arrow">↑</span> $1,284.50 (+5.45%) today</div>
+          <div class="chart-area"><canvas data-landing--portfolio-chart-target="canvas"></canvas></div>
+        </div>
+        <div class="preview-panel" data-controller="landing--watchlist">
+          <div class="panel-header"><span class="panel-title">Watchlist</span></div>
+          <div data-landing--watchlist-target="list"></div>
+        </div>
+      </div>
+      <div class="activity-row">
+        <div class="feed-item"><div class="feed-dot green"></div><span class="feed-text"><strong>NVDA</strong> hit $925 — alert triggered</span><span class="feed-time">2s</span></div>
+        <div class="feed-item"><div class="feed-dot blue"></div><span class="feed-text">Fed minutes: <strong>dovish tone</strong></span><span class="feed-time">45s</span></div>
+        <div class="feed-item"><div class="feed-dot purple"></div><span class="feed-text">AI: <strong>AAPL</strong> bullish pennant forming</span><span class="feed-time">2m</span></div>
+        <div class="feed-item"><div class="feed-dot green"></div><span class="feed-text"><strong>BTC</strong> volume 3x spike</span><span class="feed-time">5m</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# Stats %>
+<div class="stats-bar" data-controller="landing--reveal landing--counter">
+  <div class="stats-grid">
+    <div class="stat-item rv"><div class="stat-num" data-landing--counter-target="counter" data-target-value="8400" data-suffix="+">8,400+</div><div class="stat-label">Symbols tracked</div></div>
+    <div class="stat-item rv rv-d1"><div class="stat-num">&lt; 1s</div><div class="stat-label">Data latency</div></div>
+    <div class="stat-item rv rv-d2"><div class="stat-num" data-landing--counter-target="counter" data-target-value="2100000" data-suffix="">2.1M</div><div class="stat-label">Alerts sent / month</div></div>
+    <div class="stat-item rv rv-d3"><div class="stat-num">99.97%</div><div class="stat-label">Uptime SLA</div></div>
+  </div>
+</div>
+
+<%# Features %>
+<section class="features" id="features" data-controller="landing--reveal landing--feature-visuals">
+  <div class="section-label rv">Features</div>
+  <div class="section-title rv rv-d1">Everything you need,<br>nothing you don't</div>
+  <div class="section-desc rv rv-d2">Built for traders who value signal over noise.</div>
+  <div class="features-grid stagger">
+    <div class="feature-card rv">
+      <div class="feature-visual"><canvas data-landing--feature-visuals-target="stream"></canvas></div>
+      <div class="fc-body">
+        <div class="fc-icon blue">⚡</div>
+        <div class="fc-title">Real-time streaming</div>
+        <div class="fc-desc">Sub-second price updates via Finnhub WebSocket. Stocks, forex, and crypto — one unified feed.</div>
+      </div>
+    </div>
+    <div class="feature-card rv">
+      <div class="feature-visual"><canvas data-landing--feature-visuals-target="alerts"></canvas></div>
+      <div class="fc-body">
+        <div class="fc-icon green">🔔</div>
+        <div class="fc-title">Smart alerts</div>
+        <div class="fc-desc">Price thresholds, volume spikes, and technical signals — via Telegram, email, or WhatsApp.</div>
+      </div>
+    </div>
+    <div class="feature-card rv">
+      <div class="feature-visual"><canvas data-landing--feature-visuals-target="neural"></canvas></div>
+      <div class="fc-body">
+        <div class="fc-icon purple">✦</div>
+        <div class="fc-title">AI analysis</div>
+        <div class="fc-desc">Gemini 2.5 Flash analyzes patterns and generates actionable insights on your watchlist.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# How It Works %>
+<section class="how-section" id="how" data-controller="landing--reveal">
+  <div class="how-inner">
+    <div style="text-align:center">
+      <div class="section-label rv">How it works</div>
+      <div class="section-title rv rv-d1">Up and running in 30 seconds</div>
+    </div>
+    <div class="steps stagger">
+      <div class="step rv"><div class="step-badge">1</div><div class="step-title">Create account</div><div class="step-desc">Email and password. No credit card needed.</div></div>
+      <div class="step rv"><div class="step-badge">2</div><div class="step-title">Pick stocks</div><div class="step-desc">Search and add symbols to your watchlist.</div></div>
+      <div class="step rv"><div class="step-badge">3</div><div class="step-title">Set alerts</div><div class="step-desc">Price, volume, or AI-powered conditions.</div></div>
+      <div class="step rv"><div class="step-badge">4</div><div class="step-title">Get notified</div><div class="step-desc">Telegram, email, or WhatsApp — instantly.</div></div>
+    </div>
+  </div>
+</section>
+
+<%# AI Section %>
+<section class="ai-section" id="ai" data-controller="landing--reveal landing--ai-terminal">
+  <div class="ai-grid">
+    <div>
+      <div class="section-label rv">AI-Powered</div>
+      <div class="section-title rv rv-d1">Your analyst<br>never sleeps</div>
+      <div class="section-desc rv rv-d2">Gemini 2.5 Flash processes news, earnings, and technical patterns. Plain-English insights before the market moves.</div>
+    </div>
+    <div class="ai-terminal rv rv-d3">
+      <div class="ai-bar"><div class="dots"><span></span><span></span><span></span></div><div class="tag">Gemini 2.5 Flash</div></div>
+      <div class="ai-body" data-landing--ai-terminal-target="body"></div>
+    </div>
+  </div>
+</section>
+
+<%# Notifications %>
+<section class="notif-section" data-controller="landing--reveal">
+  <div class="notif-inner">
+    <div class="notif-grid">
+      <div>
+        <div class="section-label rv">Notifications</div>
+        <div class="section-title rv rv-d1">Never miss<br>a signal</div>
+        <div class="section-desc rv rv-d2">Multi-channel alerts in milliseconds. Choose your channel, set conditions, let StockPulse watch.</div>
+      </div>
+      <div class="notif-stack">
+        <div class="notif-card rv"><div class="n-icon tg">✈️</div><div><div class="n-title">Telegram</div><div class="n-text">AAPL crossed $200 — price alert triggered.</div><div class="n-time">Just now</div></div></div>
+        <div class="notif-card rv"><div class="n-icon em">✉️</div><div><div class="n-title">Email Digest</div><div class="n-text">3 stocks moved >5%, 1 earnings surprise.</div><div class="n-time">2m ago</div></div></div>
+        <div class="notif-card rv"><div class="n-icon wa">💬</div><div><div class="n-title">WhatsApp</div><div class="n-text">BTC volume 4.2x average in last hour.</div><div class="n-time">8m ago</div></div></div>
+        <div class="notif-card rv"><div class="n-icon tg">✈️</div><div><div class="n-title">Telegram</div><div class="n-text">AI: NVDA bullish pennant on the 4H chart.</div><div class="n-time">15m ago</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# CTA %>
+<section class="cta" data-controller="landing--reveal">
+  <h2 class="rv">Start tracking the<br><span class="shimmer">markets today</span></h2>
+  <p class="rv rv-d1">Free tier includes real-time data, 5 alerts, and AI analysis.</p>
+  <%= form_for(User.new, url: user_registration_path, html: { class: "cta-form rv rv-d2" }) do |f| %>
+    <%= f.hidden_field :name, value: "Trader" %>
+    <%= f.email_field :email, class: "cta-input", placeholder: "Enter your email", required: true %>
+    <%= f.submit "Get Started", class: "btn-primary" %>
+  <% end %>
+  <div class="cta-note rv rv-d3">No credit card required · Join 12,000+ traders</div>
+</section>
+
+<%# Footer %>
+<footer class="landing-footer">
+  <div class="footer-inner">
+    <div class="footer-left">© 2026 StockPulse</div>
+    <div class="footer-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Docs</a><a href="#">GitHub</a></div>
+  </div>
+</footer>
