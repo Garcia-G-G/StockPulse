@@ -1,0 +1,35 @@
+<div class="aurora"><canvas id="auroraCanvas" data-controller="landing--aurora"></canvas></div>
+<canvas id="particleCanvas" data-controller="landing--particles"></canvas>
+<div class="orb orb-1"></div><div class="orb orb-2"></div>
+<div class="grid-overlay"></div><div class="noise"></div>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 26 26" fill="none"><rect x="2" y="2" width="22" height="22" rx="6" stroke="url(#lg3)" stroke-width="1.8"/><polyline points="7,17 10.5,11 15,14 20,7" stroke="url(#lg3)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg3" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
+      <span>StockPulse</span>
+    </div>
+    <div class="auth-title">Welcome back</div>
+    <div class="auth-subtitle">Sign in to your dashboard</div>
+
+    <% if flash[:notice] %><div class="auth-flash"><%= flash[:notice] %></div><% end %>
+    <% if flash[:alert] %><div class="auth-errors"><%= flash[:alert] %></div><% end %>
+
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+      <div class="auth-field">
+        <label class="auth-label">Email</label>
+        <%= f.email_field :email, class: "auth-input", placeholder: "you@example.com", autofocus: true, required: true %>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Password</label>
+        <%= f.password_field :password, class: "auth-input", placeholder: "Your password", autocomplete: "current-password", required: true %>
+      </div>
+      <div class="auth-remember">
+        <%= f.check_box :remember_me %> Remember me
+      </div>
+      <%= f.submit "Sign In", class: "auth-btn" %>
+    <% end %>
+
+    <%= render "devise/shared/links" %>
+  </div>
+</div>

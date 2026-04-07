@@ -1,0 +1,32 @@
+<div class="aurora"><canvas id="auroraCanvas" data-controller="landing--aurora"></canvas></div>
+<canvas id="particleCanvas" data-controller="landing--particles"></canvas>
+<div class="orb orb-1"></div><div class="orb orb-2"></div>
+<div class="grid-overlay"></div><div class="noise"></div>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 26 26" fill="none"><rect x="2" y="2" width="22" height="22" rx="6" stroke="url(#lg5)" stroke-width="1.8"/><polyline points="7,17 10.5,11 15,14 20,7" stroke="url(#lg5)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg5" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
+      <span>StockPulse</span>
+    </div>
+    <div class="auth-title">Set new password</div>
+    <div class="auth-subtitle">Choose a strong password</div>
+
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f| %>
+      <%= f.hidden_field :reset_password_token %>
+      <div class="auth-field">
+        <label class="auth-label">New Password</label>
+        <%= f.password_field :password, class: "auth-input", placeholder: "Min 8 characters", autofocus: true, autocomplete: "new-password", required: true %>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Confirm Password</label>
+        <%= f.password_field :password_confirmation, class: "auth-input", placeholder: "Repeat password", autocomplete: "new-password", required: true %>
+      </div>
+      <%= f.submit "Change Password", class: "auth-btn" %>
+    <% end %>
+
+    <%= render "devise/shared/links" %>
+  </div>
+</div>

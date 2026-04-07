@@ -20,6 +20,10 @@ Rails.application.routes.draw do
     sign_out: "logout",
     sign_up: "signup",
     password: "forgot-password"
+  }, controllers: {
+    registrations: "users/registrations",
+    sessions: "users/sessions",
+    passwords: "users/passwords"
   }
 
   # Root routing based on auth state
