@@ -15,8 +15,14 @@ module Alerts
       "multi_condition" => "Alerts::MultiConditionEvaluator"
     }.freeze
 
-    def evaluate_all(symbol:, price_data:, technical_data: nil, news_data: nil)
+    TECHNICAL_TYPES = %w[rsi_overbought rsi_oversold macd_crossover bollinger_breakout].freeze
+    NEWS_TYPES = %w[news_sentiment].freeze
+    PRICE_TYPES = %w[price_above price_below price_change_pct].freeze
+    VOLUME_TYPES = %w[volume_spike].freeze
+
+    def evaluate_all(symbol:, price_data:, technical_data: nil, news_data: nil, alert_types: nil)
       alerts = Alert.active_alerts.for_symbol(symbol)
+      alerts = alerts.where(alert_type: alert_types) if alert_types
 
       alerts.filter_map do |alert|
         next if alert.cooldown_active?

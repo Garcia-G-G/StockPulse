@@ -3,11 +3,16 @@
 module Watchlists
   class Manager
     def add(user:, symbol:, name: nil, exchange: nil)
-      raise NotImplementedError, "Watchlists::Manager#add not yet implemented"
+      item = user.watchlist_items.find_or_initialize_by(symbol: symbol.upcase)
+      item.assign_attributes(name: name, exchange: exchange, active: true, added_at: Time.current)
+      item.save!
+      item
     end
 
     def remove(user:, symbol:)
-      raise NotImplementedError, "Watchlists::Manager#remove not yet implemented"
+      item = user.watchlist_items.find_by!(symbol: symbol.upcase)
+      item.update!(active: false)
+      item
     end
 
     def all_watched_symbols
