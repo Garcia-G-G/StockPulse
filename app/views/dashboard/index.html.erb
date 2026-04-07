@@ -1,11 +1,125 @@
-<div class="container mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold text-gray-900 mb-8">StockPulse Dashboard</h1>
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sb">
+    <div class="sb-logo">S</div>
+    <a href="/" class="active" title="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></a>
+    <a href="/sidekiq" title="Jobs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></a>
+    <a href="/api/v1/health" title="Health"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></a>
+    <div class="sb-footer"><div class="cdot" style="width:6px;height:6px;margin:0 auto"></div></div>
+  </nav>
 
-  <div id="watchlist" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    <% @watchlist_items.each do |item| %>
-      <%= render "watchlist_item", item: item %>
-    <% end %>
+  <!-- Main -->
+  <div class="mc">
+    <!-- Top bar -->
+    <header class="tb">
+      <div class="tb-left">
+        <div class="logo"><span class="logo-dot"></span>StockPulse</div>
+        <div class="tabs">
+          <a class="tab active" href="/">Dashboard</a>
+          <a class="tab" href="/sidekiq">Jobs</a>
+          <a class="tab" href="/api/v1/health">Health</a>
+        </div>
+      </div>
+      <div class="tb-right">
+        <div id="market-badge" class="mbadge closed"><span id="mdot" style="width:5px;height:5px;border-radius:50%;display:inline-block"></span><span id="mlabel">—</span></div>
+        <span class="clock" id="clock">--:--:--</span>
+        <div class="cdot" title="System connected"></div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="cg">
+      <!-- Stats row -->
+      <div class="sr">
+        <div class="sc">
+          <div class="sc-label">Watchlist</div>
+          <div class="sc-val"><%= @watchlist_items.count %></div>
+          <div class="sc-sub">symbols tracked</div>
+        </div>
+        <div class="sc">
+          <div class="sc-label">Alerts Today</div>
+          <div class="sc-val"><%= @alerts_today %></div>
+          <div class="sc-sub">triggered</div>
+        </div>
+        <div class="sc">
+          <div class="sc-label">Active Alerts</div>
+          <div class="sc-val"><%= @active_alerts %></div>
+          <div class="sc-sub">monitoring</div>
+        </div>
+        <div class="sc">
+          <div class="sc-label">Users</div>
+          <div class="sc-val"><%= @total_users %></div>
+          <div class="sc-sub">active</div>
+        </div>
+      </div>
+
+      <!-- Watchlist card -->
+      <div class="card">
+        <div class="ct">Watchlist</div>
+        <% if @watchlist_items.any? %>
+          <table class="wl">
+            <thead><tr><th>Symbol</th><th>Exchange</th><th>Price</th><th>Status</th></tr></thead>
+            <tbody>
+              <% @watchlist_items.each do |item| %>
+                <tr>
+                  <td><div class="sym"><%= item.symbol %></div><div class="sym-name"><%= item.name || item.symbol %></div></td>
+                  <td><span class="ex"><%= item.exchange || "—" %></span></td>
+                  <td class="pr" data-symbol="<%= item.symbol %>">—</td>
+                  <td style="text-align:right"><span class="gain" style="font-size:11px">● Active</span></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <div class="empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-tertiary);margin-bottom:8px"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            <p>No symbols yet</p>
+            <p style="font-size:11px;color:var(--text-tertiary);margin-top:4px">Use the API or Telegram bot to add symbols</p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Alerts card -->
+      <div class="card">
+        <div class="ct">Recent Alerts</div>
+        <% if @recent_alerts.any? %>
+          <div class="al">
+            <% @recent_alerts.each_with_index do |ah, i| %>
+              <% is_gain = ah.alert_type.include?("above") || ah.alert_type.include?("overbought") %>
+              <div class="ai" style="animation-delay:<%= i * 40 %>ms">
+                <div class="adot" style="background:<%= is_gain ? 'var(--gain)' : 'var(--loss)' %>"></div>
+                <div>
+                  <div class="atype"><%= ah.alert_type.tr("_", " ") %></div>
+                  <div class="amsg"><%= truncate(ah.message, length: 90) %></div>
+                  <div class="atime"><%= time_ago_in_words(ah.triggered_at) %> ago</div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="empty">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-tertiary);margin-bottom:8px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <p>No alerts triggered yet</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <footer class="sbar">
+      <span><span class="sdot" style="background:<%= @system_healthy ? 'var(--gain)' : 'var(--loss)' %>"></span><%= @system_healthy ? "Connected" : "Issues" %></span>
+      <span><%= @watchlist_items.count %> symbols</span>
+      <span><%= @active_alerts %> alerts</span>
+      <span><%= @alerts_today %> triggered today</span>
+    </footer>
   </div>
 </div>
 
 <%= turbo_stream_from "prices" %>
+
+<script>
+  // Clock
+  !function(){const e=document.getElementById("clock");setInterval(()=>{const t=new Date,n=t.toLocaleTimeString("en-US",{hour12:false,hour:"2-digit",minute:"2-digit",second:"2-digit"}),z=t.toLocaleTimeString("en-US",{timeZoneName:"short"}).split(" ").pop();e.textContent=n+" "+z},1000)}();
+  // Market status
+  !function(){const b=document.getElementById("market-badge"),d=document.getElementById("mdot"),l=document.getElementById("mlabel");function u(){const n=new Date,e=new Date(n.toLocaleString("en-US",{timeZone:"America/New_York"})),h=e.getHours(),m=e.getMinutes(),dy=e.getDay(),t=h*60+m,o=dy>=1&&dy<=5&&t>=570&&t<960;b.className="mbadge "+(o?"open":"closed");d.style.background=o?"var(--gain)":"var(--loss)";l.textContent=o?"Market Open":"Market Closed"}u();setInterval(u,30000)}();
+</script>

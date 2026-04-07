@@ -1,31 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title><%= content_for(:title) || "Stockpulse" %></title>
+    <title><%= content_for(:title) || "StockPulse" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Stockpulse">
-    <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
     <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='7' fill='%233B82F6'/></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <style>
+      :root{--bg-void:#0F1117;--bg-surface:#1C1E27;--bg-elevated:#262833;--bg-hover:rgba(59,130,246,.08);--bg-active:rgba(59,130,246,.2);--text-primary:#E8E8ED;--text-secondary:#8B8D97;--text-tertiary:#5C5E69;--text-muted:#3E4049;--accent:#3B82F6;--accent-dim:rgba(59,130,246,.2);--accent-purple:#8B5CF6;--gain:#10B981;--gain-bg:rgba(16,185,129,.15);--loss:#F43F5E;--loss-bg:rgba(244,63,94,.15);--warn:#F59E0B;--border:rgba(255,255,255,.06);--border-light:rgba(255,255,255,.1);--f-ui:'Inter',-apple-system,sans-serif;--f-data:'JetBrains Mono',monospace}
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:var(--f-ui);background:var(--bg-void);color:var(--text-primary);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden;font-size:13px}
+      ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg-void)}::-webkit-scrollbar-thumb{background:var(--accent-dim);border-radius:3px}
+      .app{display:flex;height:100vh}
+      .sb{width:48px;background:var(--bg-void);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;flex-shrink:0}
+      .sb-logo{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-weight:700;font-size:13px;color:#fff}
+      .sb a{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--text-tertiary);text-decoration:none;transition:all .15s}
+      .sb a:hover{color:var(--accent);background:var(--bg-hover)}
+      .sb a.active{color:var(--accent);background:var(--bg-active);box-shadow:0 0 0 1px var(--accent)}
+      .sb a svg{width:18px;height:18px}
+      .mc{flex:1;display:flex;flex-direction:column;min-width:0}
+      .tb{height:48px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+      .tb-left{display:flex;align-items:center;gap:20px}
+      .logo{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+      .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+      .tabs{display:flex;gap:2px}
+      .tab{font-size:13px;font-weight:500;color:var(--text-secondary);padding:13px 12px;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;text-decoration:none}
+      .tab:hover{color:var(--text-primary)}
+      .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+      .tb-right{display:flex;align-items:center;gap:14px}
+      .clock{font-family:var(--f-data);font-size:12px;color:var(--text-secondary)}
+      .mbadge{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px}
+      .mbadge.open{background:var(--gain-bg);color:var(--gain)}.mbadge.closed{background:var(--loss-bg);color:var(--loss)}
+      .cdot{width:7px;height:7px;border-radius:50%;background:var(--gain);animation:pulse 2s infinite}
+      @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+      .cg{flex:1;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;gap:16px;padding:20px}
+      .sr{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+      .sc{background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+      .sc-label{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+      .sc-val{font-family:var(--f-data);font-size:26px;font-weight:700;line-height:1.2;margin-top:6px}
+      .sc-sub{font-size:11px;color:var(--text-tertiary);margin-top:3px}
+      .card{background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;padding:20px;display:flex;flex-direction:column;overflow:hidden}
+      .ct{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+      table.wl{width:100%;border-collapse:collapse}
+      .wl th{text-align:left;padding:8px 12px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-tertiary);border-bottom:1px solid var(--border)}
+      .wl th:nth-child(3),.wl th:nth-child(4){text-align:right}
+      .wl td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+      .wl tbody tr{transition:background .15s;cursor:pointer}.wl tbody tr:hover{background:var(--bg-hover)}
+      .sym{font-weight:700;font-size:13px}.sym-name{font-size:11px;color:var(--text-secondary);margin-top:1px}
+      .ex{font-size:10px;padding:2px 6px;background:var(--bg-elevated);border-radius:3px;color:var(--text-secondary)}
+      .pr{font-family:var(--f-data);font-size:13px;font-weight:600;text-align:right}
+      .ch{font-family:var(--f-data);font-size:12px;font-weight:600;text-align:right}
+      .gain{color:var(--gain)}.loss{color:var(--loss)}
+      .vb{width:36px;height:12px;background:var(--accent-dim);border-radius:2px;overflow:hidden;display:inline-block}
+      .vf{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-purple));border-radius:2px}
+      .al{display:flex;flex-direction:column;gap:4px;flex:1;overflow-y:auto}
+      .ai{display:flex;gap:10px;padding:10px;border-radius:6px;transition:background .15s;animation:si .3s ease both}
+      .ai:hover{background:var(--bg-hover)}
+      @keyframes si{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+      .adot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+      .atype{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--text-tertiary)}
+      .amsg{font-size:12px;color:var(--text-primary);line-height:1.4;margin-top:2px}
+      .atime{font-size:10px;color:var(--text-tertiary);margin-top:2px;font-family:var(--f-data)}
+      .sb-footer{margin-top:auto;padding:8px 0}
+      .sb-footer .cdot{width:6px;height:6px;margin:0 auto}
+      .sbar{height:28px;background:var(--bg-surface);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:24px;font-size:11px;color:var(--text-tertiary);flex-shrink:0;font-family:var(--f-data)}
+      .sbar .sdot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:6px}
+      .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;color:var(--text-tertiary);font-size:13px;text-align:center;flex:1}
+      @media(max-width:1024px){.cg{grid-template-columns:1fr}.sr{grid-template-columns:repeat(2,1fr)}}
+      @media(max-width:768px){.sb{display:none}.tabs{display:none}}
+    </style>
   </head>
-
-  <body class="bg-gray-50">
-    <main class="container mx-auto mt-28 px-5 flex">
-      <%= yield %>
-    </main>
+  <body>
+    <%= yield %>
   </body>
 </html>
