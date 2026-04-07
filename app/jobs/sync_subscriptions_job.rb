@@ -10,8 +10,10 @@ class SyncSubscriptionsJob < ApplicationJob
       redis.publish("stream:commands", { action: "rebalance", symbols: symbols }.to_json)
     end
 
-    symbols.each do |symbol|
-      PriceSnapshotJob.perform_later(symbol)
+    # Stagger snapshot jobs to avoid overwhelming the Finnhub API rate limit.
+    # Each job gets a few seconds of offset.
+    symbols.each_with_index do |symbol, index|
+      PriceSnapshotJob.set(wait: (index * 2).seconds).perform_later(symbol)
     end
 
     SystemLog.log(level: "info", component: "sync_subscriptions", message: "Queued snapshots for #{symbols.size} symbols")

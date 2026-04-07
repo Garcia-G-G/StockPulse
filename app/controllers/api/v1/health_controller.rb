@@ -13,7 +13,7 @@ module Api
           redis: redis_healthy?,
           sidekiq: sidekiq_healthy?
         }
-        status = checks.values_at(:database, :redis, :sidekiq).all? ? :ok : :service_unavailable
+        status = checks.values_at(:database, :redis, :sidekiq).all? { |v| v == true } ? :ok : :service_unavailable
         render json: checks, status: status
       end
 

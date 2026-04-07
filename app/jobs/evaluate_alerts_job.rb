@@ -30,5 +30,6 @@ class EvaluateAlertsJob < ApplicationJob
       message: "Failed for #{symbol}: #{e.message}",
       data: { backtrace: e.backtrace&.first(5) }
     )
+    raise # Re-raise so Sidekiq can see the failure (retries are disabled via retry: 0)
   end
 end

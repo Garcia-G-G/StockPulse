@@ -9,7 +9,7 @@ Sidekiq::Web.use(Rack::Auth::Basic) do |user, password|
   expected_pass = ENV.fetch("SIDEKIQ_PASSWORD") { Rails.env.production? ? nil : "password" }
   next false unless expected_user && expected_pass
 
-  ActiveSupport::SecurityUtils.secure_compare(user, expected_user) &
+  ActiveSupport::SecurityUtils.secure_compare(user, expected_user) &&
     ActiveSupport::SecurityUtils.secure_compare(password, expected_pass)
 end
 

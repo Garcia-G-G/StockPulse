@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 namespace :stream do
-  desc "Start the real-time price streaming pipeline (Alpaca + Finnhub)"
+  desc "Start the Finnhub WebSocket price streaming pipeline"
   task start: :environment do
     manager = Streaming::PriceStreamManager.new
 
@@ -13,9 +13,7 @@ namespace :stream do
       end
     end
 
-    puts "Starting dual-source price stream (Alpaca primary, Finnhub secondary)..."
+    puts "Starting Finnhub price stream..."
     manager.start
-
-    loop { sleep(1) }
   end
 end

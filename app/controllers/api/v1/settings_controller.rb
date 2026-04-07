@@ -33,11 +33,8 @@ module Api
       private
 
       def settings_params
-        permitted = params.permit(:notifications_muted, settings: {})
-        if permitted[:settings].present?
-          allowed_keys = %w[telegram_enabled email_enabled whatsapp_enabled timezone language]
-          permitted[:settings] = permitted[:settings].slice(*allowed_keys)
-        end
+        permitted = params.permit(:notifications_muted,
+                                  settings: %i[telegram_enabled email_enabled whatsapp_enabled timezone language])
         permitted
       end
     end

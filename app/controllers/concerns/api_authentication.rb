@@ -30,9 +30,10 @@ module ApiAuthentication
     # Use secure comparison to prevent timing attacks
     return nil unless ActiveSupport::SecurityUtils.secure_compare(token, configured_token)
 
-    # Return a system user or create a simple context
-    # This can be extended to support different API token users
-    User.find_by(api_token: token) if User.respond_to?(:api_token)
+    # Return the first active user as the system/API user.
+    # The token authenticates the request; any active user provides the context.
+    # In production, consider a dedicated API user or a token-to-user mapping table.
+    User.active.first
   end
 
   # Authenticate using X-Telegram-Chat-Id header

@@ -140,9 +140,16 @@ class StockPulseBot
     items = user.watchlist_items.active
     return reply(chat_id, "Your watchlist is empty. Use /watch AAPL to add symbols.") if items.empty?
 
+    # Pre-fetch latest snapshot per symbol to avoid N+1 queries
+    symbols = items.map(&:symbol)
+    latest_snapshots = PriceSnapshot.where(symbol: symbols)
+                                    .order(captured_at: :desc)
+                                    .select("DISTINCT ON (symbol) symbol, price, change_percent")
+                                    .index_by(&:symbol)
+
     lines = ["*Your Watchlist*", ""]
     items.each do |item|
-      snapshot = PriceSnapshot.for_symbol(item.symbol).recent.first
+      snapshot = latest_snapshots[item.symbol]
       if snapshot
         emoji = snapshot.change_percent.to_f.positive? ? "+" : ""
         lines << "#{item.symbol}: $#{'%.2f' % snapshot.price} (#{emoji}#{'%.2f' % snapshot.change_percent}%)"

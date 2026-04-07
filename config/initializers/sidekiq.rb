@@ -4,8 +4,8 @@ Sidekiq.configure_server do |config|
   config.on(:startup) do
     schedule_file = Rails.root.join("config", "schedule.yml")
     if File.exist?(schedule_file)
-      schedule = YAML.load_file(schedule_file)
-      Sidekiq::Cron::Job.load_from_hash(schedule)
+      schedule = YAML.safe_load_file(schedule_file, permitted_classes: [Symbol])
+      Sidekiq::Cron::Job.load_from_hash(schedule) if schedule.is_a?(Hash)
     end
   end
 end

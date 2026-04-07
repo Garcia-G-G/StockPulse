@@ -15,7 +15,8 @@ module Api
             technical_data: indicators,
             news_data: nil
           )
-        rescue StandardError
+        rescue StandardError => e
+          Rails.logger.warn("[AnalysisController] AI service unavailable for #{symbol}: #{e.message}")
           nil
         end
 
@@ -58,7 +59,10 @@ module Api
         quotes = symbols.first(10).filter_map do |sym|
           quote = client.quote(sym)
           { symbol: sym, **quote }
-        rescue StandardError
+        rescue BaseClient::RateLimitExceeded
+          break # Stop fetching when rate limited
+        rescue StandardError => e
+          Rails.logger.debug("[Briefing] Quote fetch failed for #{sym}: #{e.message}")
           nil
         end
 

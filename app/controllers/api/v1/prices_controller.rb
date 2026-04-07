@@ -65,7 +65,6 @@ module Api
         stats = cache.get_stats
 
         render json: {
-          alpaca: cache.get_connection_status("alpaca"),
           finnhub: cache.get_connection_status("finnhub"),
           symbols_active: stats["symbols_count"] || 0,
           trades_per_second: stats["trades_per_second"] || 0,

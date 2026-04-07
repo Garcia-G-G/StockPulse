@@ -15,9 +15,11 @@ module Alertable
   end
 
   def record_trigger!
-    update!(
-      last_triggered_at: Time.current,
-      trigger_count: (trigger_count || 0) + 1
+    # Use SQL increment to avoid race conditions when multiple
+    # workers evaluate the same alert concurrently
+    self.class.where(id: id).update_all(
+      "last_triggered_at = NOW(), trigger_count = COALESCE(trigger_count, 0) + 1"
     )
+    reload
   end
 end

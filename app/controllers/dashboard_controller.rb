@@ -6,7 +6,7 @@ class DashboardController < ApplicationController
     @active_alerts = Alert.active.count
     @alerts_today = AlertHistory.today.count
     @total_users = User.active.count
-    @recent_alerts = AlertHistory.recent.limit(10).includes(:alert)
+    @recent_alerts = AlertHistory.recent.limit(10).includes(:alert, :user)
     @system_healthy = system_healthy?
   end
 

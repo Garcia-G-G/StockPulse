@@ -2,8 +2,14 @@
 
 class AlertsChannel < ApplicationCable::Channel
   def subscribed
-    if params[:user_id].present?
-      stream_from "alerts:#{params[:user_id]}"
+    user_id = params[:user_id]
+
+    if user_id.present? && User.exists?(id: user_id)
+      # NOTE: In production, verify that the connected user matches user_id
+      # via connection.current_user (requires WebSocket authentication).
+      # Currently ActionCable connections are unauthenticated, so any client
+      # can subscribe to any user's alerts. See ApplicationCable::Connection.
+      stream_from "alerts:#{user_id}"
     else
       reject
     end

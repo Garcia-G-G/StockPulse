@@ -15,9 +15,24 @@ class UpdateIndicatorsJob < ApplicationJob
         next if cached.present?
 
         data = {}
-        data[:rsi] = client.rsi(symbol) rescue nil
-        data[:macd] = client.macd(symbol) rescue nil
-        data[:bollinger] = client.bollinger_bands(symbol) rescue nil
+        begin
+          data[:rsi] = client.rsi(symbol)
+        rescue StandardError => e
+          SystemLog.log(level: "warn", component: "indicators", message: "RSI fetch failed for #{symbol}: #{e.message}")
+        end
+        begin
+          data[:macd] = client.macd(symbol)
+        rescue StandardError => e
+          SystemLog.log(level: "warn", component: "indicators", message: "MACD fetch failed for #{symbol}: #{e.message}")
+        end
+        begin
+          data[:bollinger] = client.bollinger_bands(symbol)
+        rescue StandardError => e
+          SystemLog.log(level: "warn", component: "indicators", message: "Bollinger fetch failed for #{symbol}: #{e.message}")
+        end
+
+        # Only cache and evaluate if we got at least some data
+        next if data.values.all?(&:nil?)
 
         redis.set(cache_key, data.to_json, ex: 3600)
 

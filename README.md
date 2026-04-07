@@ -20,7 +20,7 @@
 StockPulse is a self-hosted stock market monitoring platform built with Rails 8. It connects to financial data APIs, evaluates custom alert conditions in real-time, and delivers notifications via Telegram, WhatsApp, and email. An integrated AI service powered by Google Gemini provides market analysis and daily briefings.
 
 ```
-Finnhub/Alpaca WSS ──► PriceStreamManager ──► ActionCable ──► Browser
+Finnhub WebSocket ──► PriceStreamManager ──► ActionCable ──► Browser
                             │                      │
                         Redis Cache            AlertEngine
                             │                      │
@@ -34,7 +34,7 @@ Finnhub/Alpaca WSS ──► PriceStreamManager ──► ActionCable ──► 
 
 | Category | Details |
 |----------|---------|
-| **Real-Time Data** | WebSocket streaming from Finnhub + Alpaca with automatic failover, 1-second aggregation, Redis price cache |
+| **Real-Time Data** | WebSocket streaming from Finnhub with auto-reconnect, 1-second trade aggregation, Redis price cache |
 | **Smart Alerts** | Price thresholds, percent change, RSI, MACD crossover, Bollinger bands, volume spikes, news sentiment, multi-condition (AND/OR) |
 | **Notifications** | Telegram bot (14 commands), WhatsApp (Twilio/OpenClaw), email with HTML templates |
 | **AI Analysis** | Google Gemini integration for market analysis, daily briefings, alert importance scoring |
@@ -52,7 +52,7 @@ Finnhub/Alpaca WSS ──► PriceStreamManager ──► ActionCable ──► 
 | Database | PostgreSQL 16, Redis 7 |
 | Background Jobs | Sidekiq 8 + sidekiq-cron |
 | Real-Time | ActionCable (Solid Cable), Faye WebSocket |
-| Data Sources | Finnhub (primary), Alpha Vantage (indicators), MarketAux (news) |
+| Data Sources | Finnhub (real-time + REST), Alpha Vantage (indicators), MarketAux (news) |
 | AI | Google Gemini 2.0 Flash via FastAPI microservice |
 | Notifications | Telegram Bot API, Twilio (WhatsApp), SMTP |
 | Frontend | Server-rendered ERB + Tailwind CSS + Stimulus |
@@ -271,7 +271,7 @@ Required production environment variables — see [`.env.example`](.env.example)
 ```
 app/
   channels/       — ActionCable channels (prices, alerts, status)
-  clients/        — API clients (Finnhub, Alpha Vantage, MarketAux, Alpaca, AI)
+  clients/        — API clients (Finnhub, Alpha Vantage, MarketAux, AI)
   controllers/    — API v1 controllers + dashboard
   jobs/           — Sidekiq background jobs
   mailers/        — Email templates
@@ -286,7 +286,7 @@ app/
   views/          — Dashboard ERB templates
 ai_service/       — Python FastAPI + Google Gemini
 config/
-  initializers/   — Finnhub, Alpaca, Redis, Sidekiq, Telegram, CORS, CSP
+  initializers/   — Finnhub, Redis, Sidekiq, Telegram, CORS, CSP
   routes.rb       — API routes + ActionCable + Sidekiq Web
 spec/             — RSpec tests (models, services, requests, jobs)
 ```

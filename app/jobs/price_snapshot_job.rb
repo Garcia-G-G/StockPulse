@@ -4,11 +4,14 @@ class PriceSnapshotJob < ApplicationJob
   queue_as :default
 
   def perform(symbol)
+    symbol = symbol.upcase
     client = FinnhubClient.new
     quote = client.quote(symbol)
 
+    return if quote.nil? || quote["c"].to_f.zero?
+
     PriceSnapshot.create!(
-      symbol: symbol.upcase,
+      symbol: symbol,
       price: quote["c"],
       open: quote["o"],
       high: quote["h"],
@@ -19,24 +22,8 @@ class PriceSnapshotJob < ApplicationJob
       data: quote
     )
 
-    engine = Alerts::Engine.new
-    results = engine.evaluate_all(symbol: symbol, price_data: quote)
-
-    results.each do |result|
-      alert = result[:alert]
-      AlertHistory.create!(
-        alert: alert,
-        user: alert.user,
-        symbol: alert.symbol,
-        alert_type: alert.alert_type,
-        message: result[:message],
-        data: result[:data],
-        channels_notified: alert.user.notification_channels,
-        triggered_at: Time.current
-      )
-
-      SendNotificationJob.perform_later(user_id: alert.user_id, message: result[:message])
-    end
+    # Delegate alert evaluation to the dedicated job to avoid duplicated logic
+    EvaluateAlertsJob.perform_later(symbol: symbol, price_data: quote)
 
     PricesChannel.broadcast_price(symbol, quote)
   rescue BaseClient::RateLimitExceeded => e

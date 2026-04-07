@@ -2,8 +2,13 @@
 
 class PricesChannel < ApplicationCable::Channel
   def subscribed
-    if params[:symbol].present?
-      stream_from "prices:#{params[:symbol].upcase}"
+    symbol = params[:symbol]
+    if symbol.present?
+      # Validate symbol format to prevent channel name injection
+      symbol = symbol.upcase.gsub(/[^A-Z0-9.]/, "")
+      reject and return if symbol.blank? || symbol.length > 10
+
+      stream_from "prices:#{symbol}"
     else
       stream_from "prices"
     end
