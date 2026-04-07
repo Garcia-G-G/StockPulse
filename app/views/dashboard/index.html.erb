@@ -16,14 +16,15 @@
         <div class="logo"><span class="logo-dot"></span>StockPulse</div>
         <div class="tabs">
           <a class="tab active" href="/">Dashboard</a>
-          <a class="tab" href="/sidekiq">Jobs</a>
-          <a class="tab" href="/api/v1/health">Health</a>
+          <a class="tab" href="/profile">Profile</a>
         </div>
       </div>
       <div class="tb-right">
         <div id="market-badge" class="mbadge closed"><span id="mdot" style="width:5px;height:5px;border-radius:50%;display:inline-block"></span><span id="mlabel">—</span></div>
         <span class="clock" id="clock">--:--:--</span>
         <div class="cdot" title="System connected"></div>
+        <a href="/profile" class="tab" title="Profile" style="padding:0;margin-left:8px"><div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff"><%= current_user.name&.first&.upcase || "U" %></div></a>
+        <%= button_to "Logout", destroy_user_session_path, method: :delete, style: "background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:11px;padding:4px 8px" %>
       </div>
     </header>
 
@@ -47,9 +48,9 @@
           <div class="sc-sub">monitoring</div>
         </div>
         <div class="sc">
-          <div class="sc-label">Users</div>
-          <div class="sc-val"><%= @total_users %></div>
-          <div class="sc-sub">active</div>
+          <div class="sc-label">Symbols</div>
+          <div class="sc-val"><%= @watchlist_items.count %></div>
+          <div class="sc-sub">in watchlist</div>
         </div>
       </div>
 
