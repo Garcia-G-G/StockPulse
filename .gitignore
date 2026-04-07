@@ -36,3 +36,14 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Claude / AI artifacts
+.claude/
+GUIA-CONSTRUCCION-STOCK-ANALYZER.md
+PAGES_CREATED.md
+prompts-rails/
+docs/
+prototipos-design/
+public/noir-preview.html
+stockpulse-web/
+frontend/
