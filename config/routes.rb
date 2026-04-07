@@ -14,10 +14,32 @@ Sidekiq::Web.use(Rack::Auth::Basic) do |user, password|
 end
 
 Rails.application.routes.draw do
-  # Hotwire Dashboard
-  root "dashboard#index"
+  # Devise authentication
+  devise_for :users, path: "", path_names: {
+    sign_in: "login",
+    sign_out: "logout",
+    sign_up: "signup",
+    password: "forgot-password"
+  }
 
-  # Sidekiq Web UI (protected with HTTP Basic Auth)
+  # Root routing based on auth state
+  unauthenticated :user do
+    root "landing#index"
+  end
+
+  authenticated :user do
+    root "dashboard#index", as: :authenticated_root
+  end
+
+  # Onboarding
+  get "/onboarding", to: "onboarding#show"
+  post "/onboarding/step/:step", to: "onboarding#update", as: "onboarding_step"
+
+  # Profile
+  get "/profile", to: "profile#show"
+  patch "/profile", to: "profile#update"
+
+  # Sidekiq Web UI
   mount Sidekiq::Web => "/sidekiq"
 
   # ActionCable
@@ -26,6 +48,8 @@ Rails.application.routes.draw do
   # API v1
   namespace :api do
     namespace :v1 do
+      resource :me, only: :show, controller: "me"
+
       resources :watchlists, only: %i[index create destroy] do
         member do
           get :quote
