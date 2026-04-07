@@ -1,0 +1,98 @@
+<div class="aurora"><canvas id="auroraCanvas" data-controller="landing--aurora"></canvas></div>
+<canvas id="particleCanvas" data-controller="landing--particles"></canvas>
+<div class="orb orb-1"></div><div class="orb orb-2"></div>
+<div class="grid-overlay"></div><div class="noise"></div>
+
+<div class="onboarding-container" data-controller="onboarding">
+  <div class="onboarding-card">
+    <div class="onboarding-progress">
+      <div class="progress-bar-track"><div class="progress-bar-fill" data-onboarding-target="progressBar" style="width:20%"></div></div>
+      <div class="progress-text">Step <span data-onboarding-target="stepNum">1</span> of 5</div>
+    </div>
+
+    <%# Step 1: Welcome %>
+    <div class="step-content active" data-onboarding-target="step" data-step="1">
+      <div style="text-align:center">
+        <div style="font-size:48px;margin-bottom:16px">👋</div>
+        <div class="step-title">Welcome to StockPulse!</div>
+        <div class="step-subtitle">Let's set up your dashboard in 30 seconds. We'll help you pick stocks, set alerts, and connect notifications.</div>
+        <div class="onboarding-actions" style="justify-content:center">
+          <button class="btn-primary" data-action="click->onboarding#nextStep">Get Started</button>
+        </div>
+      </div>
+    </div>
+
+    <%# Step 2: Pick Stocks %>
+    <div class="step-content" data-onboarding-target="step" data-step="2">
+      <div class="step-title">Pick your stocks</div>
+      <div class="step-subtitle">Select symbols to add to your watchlist. You can always add more later.</div>
+      <div class="stock-grid">
+        <% [["AAPL", "Apple"], ["MSFT", "Microsoft"], ["GOOGL", "Alphabet"], ["AMZN", "Amazon"], ["TSLA", "Tesla"], ["NVDA", "NVIDIA"]].each do |sym, name| %>
+          <button class="stock-btn" data-action="click->onboarding#toggleStock" data-symbol="<%= sym %>">
+            <div class="stock-symbol"><%= sym %></div>
+            <div class="stock-name"><%= name %></div>
+          </button>
+        <% end %>
+      </div>
+      <div class="selected-stocks" data-onboarding-target="selectedStocks"></div>
+      <div class="onboarding-actions">
+        <button class="btn-secondary" data-action="click->onboarding#prevStep">Back</button>
+        <button class="btn-primary" data-action="click->onboarding#nextStep">Continue</button>
+      </div>
+    </div>
+
+    <%# Step 3: Set Alert %>
+    <div class="step-content" data-onboarding-target="step" data-step="3">
+      <div class="step-title">Set your first alert</div>
+      <div class="step-subtitle">Get notified when a stock hits your target price.</div>
+      <div style="margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Alert for: <strong data-onboarding-target="alertSymbol">—</strong></div>
+      <div class="alert-direction">
+        <label><input type="radio" name="alert-direction" value="above" checked><span>Price goes above</span></label>
+        <label><input type="radio" name="alert-direction" value="below"><span>Price goes below</span></label>
+      </div>
+      <input type="number" class="onboarding-input" placeholder="Target price (e.g. 200.00)" data-onboarding-target="alertPrice" step="0.01">
+      <div class="onboarding-actions">
+        <button class="btn-secondary" data-action="click->onboarding#prevStep">Back</button>
+        <button class="btn-secondary" data-action="click->onboarding#skipStep">Skip</button>
+        <button class="btn-primary" data-action="click->onboarding#nextStep">Set Alert</button>
+      </div>
+    </div>
+
+    <%# Step 4: Notifications %>
+    <div class="step-content" data-onboarding-target="step" data-step="4">
+      <div class="step-title">Connect notifications</div>
+      <div class="step-subtitle">Choose how you want to receive alerts. All channels are optional.</div>
+      <div class="notif-channel">
+        <div class="channel-icon">✉️</div>
+        <div class="channel-info"><div class="channel-name">Email</div><div class="channel-desc"><%= current_user.email %></div></div>
+        <div class="channel-badge connected">Connected</div>
+      </div>
+      <div class="notif-channel">
+        <div class="channel-icon">✈️</div>
+        <div class="channel-info"><div class="channel-name">Telegram</div><div class="channel-desc">Enter your Telegram chat ID</div></div>
+      </div>
+      <input type="text" class="onboarding-input" placeholder="Telegram Chat ID (optional)" data-onboarding-target="telegramInput">
+      <div class="notif-channel">
+        <div class="channel-icon">💬</div>
+        <div class="channel-info"><div class="channel-name">WhatsApp</div><div class="channel-desc">Enter your phone number</div></div>
+      </div>
+      <input type="tel" class="onboarding-input" placeholder="+1234567890 (optional)" data-onboarding-target="whatsappInput">
+      <div class="onboarding-actions">
+        <button class="btn-secondary" data-action="click->onboarding#prevStep">Back</button>
+        <button class="btn-primary" data-action="click->onboarding#nextStep">Continue</button>
+      </div>
+    </div>
+
+    <%# Step 5: Success %>
+    <div class="step-content" data-onboarding-target="step" data-step="5">
+      <div style="text-align:center">
+        <div class="success-icon">✓</div>
+        <div class="step-title">You're all set!</div>
+        <div class="step-subtitle">Your watchlist is ready and alerts are active. Head to your dashboard to start monitoring.</div>
+        <div class="onboarding-actions" style="justify-content:center">
+          <button class="btn-primary" data-action="click->onboarding#finish">Go to Dashboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
