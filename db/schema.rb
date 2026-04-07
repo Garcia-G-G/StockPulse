@@ -10,9 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_31_180135) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_06_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  # Custom types defined in this database.
+  # Note that some types may not work with other database engines. Be careful if changing database.
+  create_enum "alert_type_enum", ["price_above", "price_below", "percent_change_up", "percent_change_down", "price_range_break", "volume_spike", "volume_dry", "rsi_overbought", "rsi_oversold", "macd_crossover_bullish", "macd_crossover_bearish", "bollinger_break_upper", "bollinger_break_lower", "sma_golden_cross", "sma_death_cross", "news_high_impact"]
 
   create_table "alert_histories", force: :cascade do |t|
     t.bigint "alert_id", null: false
@@ -43,6 +47,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_180135) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["symbol"], name: "index_alerts_on_symbol"
+    t.index ["user_id", "active"], name: "index_alerts_on_user_id_and_active"
+    t.index ["user_id", "symbol"], name: "index_alerts_on_user_id_and_symbol"
     t.index ["user_id"], name: "index_alerts_on_user_id"
   end
 
@@ -58,6 +64,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_180135) do
     t.string "symbol"
     t.datetime "updated_at", null: false
     t.bigint "volume"
+    t.index ["captured_at"], name: "index_price_snapshots_on_captured_at"
     t.index ["symbol", "captured_at"], name: "index_price_snapshots_on_symbol_and_captured_at"
     t.index ["symbol"], name: "index_price_snapshots_on_symbol"
   end
@@ -70,6 +77,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_180135) do
     t.text "message"
     t.datetime "updated_at", null: false
     t.index ["component"], name: "index_system_logs_on_component"
+    t.index ["created_at"], name: "index_system_logs_on_created_at"
     t.index ["level"], name: "index_system_logs_on_level"
   end
 
@@ -83,6 +91,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_180135) do
     t.string "telegram_chat_id"
     t.datetime "updated_at", null: false
     t.string "whatsapp_number"
+    t.index ["email"], name: "index_users_on_email", unique: true, where: "(email IS NOT NULL)"
     t.index ["telegram_chat_id"], name: "index_users_on_telegram_chat_id"
   end
 
@@ -96,6 +105,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_180135) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["symbol"], name: "index_watchlist_items_on_symbol"
+    t.index ["user_id", "active"], name: "index_watchlist_items_on_user_id_and_active"
+    t.index ["user_id", "symbol"], name: "index_watchlist_items_on_user_id_and_symbol"
     t.index ["user_id"], name: "index_watchlist_items_on_user_id"
   end
 

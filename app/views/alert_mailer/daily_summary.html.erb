@@ -1,8 +1,16 @@
-<h2>Daily Market Summary - <%= Date.today.strftime("%B %d, %Y") %></h2>
-<% @summary_data[:items]&.each do |item| %>
-  <div>
-    <strong><%= item[:symbol] %></strong>: $<%= item[:price] %> (<%= item[:change_pct] %>%)
-  </div>
+<h2>Daily Market Summary - <%= @summary_data[:date]&.strftime("%B %d, %Y") || Date.today.strftime("%B %d, %Y") %></h2>
+
+<p>Watchlist: <%= @summary_data[:watchlist_count] %> symbols</p>
+<p>Alerts triggered today: <%= @summary_data[:alerts_triggered] %></p>
+
+<% if @summary_data[:alerts]&.any? %>
+  <h3>Recent Alerts</h3>
+  <% @summary_data[:alerts].each do |alert| %>
+    <div style="margin-bottom: 8px; padding: 8px; border-left: 3px solid #F5A623;">
+      <strong><%= alert[:symbol] %></strong> — <%= alert[:message] %>
+    </div>
+  <% end %>
 <% end %>
+
 <hr>
-<p><small>StockPulse - Real-time Stock Monitoring</small></p>
+<p><small>StockPulse - Real-time Stock Monitoring. This is not financial advice.</small></p>

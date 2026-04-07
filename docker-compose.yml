@@ -1,8 +1,58 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: stockpulse_production
+      POSTGRES_USER: stockpulse
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "effective_cache_size=3GB"
+      - "-c"
+      - "maintenance_work_mem=256MB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "wal_buffers=16MB"
+      - "-c"
+      - "default_statistics_target=100"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "effective_io_concurrency=200"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stockpulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stockpulse_network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stockpulse_network
+
   app:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:
@@ -12,55 +62,128 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    environment:
-      - RAILS_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - stockpulse_network
 
   worker:
     build:
       context: .
-      dockerfile: docker/Dockerfile
-    command: bundle exec sidekiq
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: bundle exec sidekiq -c 10
     depends_on:
-      - app
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
-    environment:
-      - RAILS_ENV=production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - stockpulse_network
+
+  stream:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: bundle exec rake stream:start
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - stockpulse_network
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: bin/rails runner "StockPulseBot.new.start"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - stockpulse_network
 
   ai_service:
     build:
       context: ./ai_service
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
-      - "8001:8001"
+      - "8000:8000"
     env_file:
       - .env
-
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: stockpulse_production
-      POSTGRES_USER: stockpulse
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U stockpulse"]
-      interval: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - stockpulse_network
 
-  redis:
-    image: redis:7-alpine
-    command: redis-server --appendonly yes
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      app:
+        condition: service_healthy
     volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/ssl:/etc/nginx/ssl:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - stockpulse_network
 
 volumes:
-  pg_data:
+  postgres_data:
   redis_data:
+
+networks:
+  stockpulse_network:
+    driver: bridge

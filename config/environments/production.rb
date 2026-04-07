@@ -22,13 +22,50 @@ Rails.application.configure do
   # config.asset_host = "http://assets.example.com"
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  config.force_ssl = true
 
   # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" || request.path == "/api/v1/health" } } }
+
+  # Add strict security headers
+  config.middleware.insert_before 0, Rack::SecurityHeaders do |headers|
+    # Prevent clickjacking attacks
+    headers.x_frame_options = "DENY"
+
+    # Prevent MIME type sniffing
+    headers.x_content_type_options = "nosniff"
+
+    # Control referrer information
+    headers.referrer_policy = "strict-origin-when-cross-origin"
+
+    # Content Security Policy without :unsafe-inline
+    headers.content_security_policy = {
+      default_src: ["'self'"],
+      script_src: ["'self'"],
+      style_src: ["'self'"],
+      img_src: ["'self'", "https:"],
+      font_src: ["'self'"],
+      connect_src: ["'self'"],
+      frame_ancestors: ["'none'"],
+      base_uri: ["'self'"],
+      form_action: ["'self'"]
+    }
+
+    # Restrict what features can be used in the browser
+    headers.permissions_policy = {
+      geolocation: [],
+      camera: [],
+      microphone: [],
+      payment: [],
+      usb: [],
+      accelerometer: [],
+      gyroscope: [],
+      magnetometer: []
+    }
+  end
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
@@ -43,28 +80,30 @@ Rails.application.configure do
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
-  # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
+  # Use Redis for caching in production.
+  config.cache_store = :redis_cache_store, { url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1") }
 
-  # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
+  # Use Sidekiq for background job processing.
+  config.active_job.queue_adapter = :sidekiq
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "example.com") }
 
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
-  # config.action_mailer.smtp_settings = {
-  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
-  #   password: Rails.application.credentials.dig(:smtp, :password),
-  #   address: "smtp.example.com",
-  #   port: 587,
-  #   authentication: :plain
-  # }
+  if ENV["SMTP_HOST"].present?
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address: ENV.fetch("SMTP_HOST"),
+      port: ENV.fetch("SMTP_PORT", 587).to_i,
+      user_name: ENV.fetch("SMTP_USER", nil),
+      password: ENV.fetch("SMTP_PASSWORD", nil),
+      authentication: ENV["SMTP_USER"].present? ? :plain : nil,
+      enable_starttls_auto: true
+    }
+  end
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
