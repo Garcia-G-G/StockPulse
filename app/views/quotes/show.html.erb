@@ -1,16 +1,16 @@
 <%# Same nav as landing %>
-<nav class="landing-nav" data-controller="landing--nav-scroll">
-  <a href="/" class="logo">
-    <svg viewBox="0 0 22 22" fill="none"><rect x="1.5" y="1.5" width="19" height="19" rx="5" stroke="#3B82F6" stroke-width="1.5"/><polyline points="6,15 9,9 13,12 17,6" stroke="#3B82F6" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    StockPulse
+<nav class="landing-nav">
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 26 26" fill="none" style="width:22px;height:22px"><rect x="2" y="2" width="22" height="22" rx="6" stroke="#3B82F6" stroke-width="1.8"/><polyline points="7,17 10.5,11 15,14 20,7" stroke="#3B82F6" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>StockPulse</span>
   </a>
-  <div class="nav-r">
-    <a href="/">← Back</a>
-    <a href="<%= new_user_registration_path %>" class="nav-btn">Sign up free</a>
+  <div class="nav-links">
+    <a href="/">← Home</a>
+    <a href="<%= new_user_registration_path %>" class="nav-cta" style="background:#3B82F6;color:#fff">Sign up free</a>
   </div>
 </nav>
 
-<div style="padding:120px 40px 80px;max-width:800px;margin:0 auto">
+<div style="padding:120px 48px 80px;max-width:700px;margin:0 auto;position:relative;z-index:1">
   <div style="margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted,#4A5370)">
     <%= @profile&.dig("name") || @symbol %> · <%= @symbol %><% if @profile&.dig("exchange") %> · <%= @profile["exchange"] %><% end %>
   </div>

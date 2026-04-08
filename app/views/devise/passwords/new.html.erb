@@ -1,27 +1,25 @@
-<div class="aurora"><canvas id="auroraCanvas" data-controller="landing--aurora"></canvas></div>
-<canvas id="particleCanvas" data-controller="landing--particles"></canvas>
-<div class="orb orb-1"></div><div class="orb orb-2"></div>
-<div class="grid-overlay"></div><div class="noise"></div>
-
-<div class="auth-container">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <svg viewBox="0 0 26 26" fill="none"><rect x="2" y="2" width="22" height="22" rx="6" stroke="url(#lg4)" stroke-width="1.8"/><polyline points="7,17 10.5,11 15,14 20,7" stroke="url(#lg4)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg4" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
-      <span>StockPulse</span>
+<div class="auth-page">
+  <div class="auth-left">
+    <a href="/" class="auth-back">← Back to home</a>
+    <div class="auth-left-content">
+      <h2>Forgot your password?</h2>
+      <p style="color:var(--text-secondary,#7E89A7);font-size:15px;line-height:1.6;margin-top:12px">No worries. Enter your email and we'll send you a reset link.</p>
     </div>
-    <div class="auth-title">Reset password</div>
-    <div class="auth-subtitle">We'll send you a reset link</div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <h1 class="auth-title">Reset password</h1>
+      <p class="auth-subtitle">Remember it? <a href="<%= new_session_path(resource_name) %>">Sign in</a></p>
 
-    <%= render "devise/shared/error_messages", resource: resource %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-    <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
-      <div class="auth-field">
-        <label class="auth-label">Email</label>
-        <%= f.email_field :email, class: "auth-input", placeholder: "you@example.com", autofocus: true, required: true %>
-      </div>
-      <%= f.submit "Send Reset Link", class: "auth-btn" %>
-    <% end %>
-
-    <%= render "devise/shared/links" %>
+      <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
+        <div class="auth-field">
+          <label class="auth-label">Email</label>
+          <%= f.email_field :email, class: "auth-input", placeholder: "you@example.com", autofocus: true, required: true %>
+        </div>
+        <%= f.submit "Send reset link", class: "auth-btn" %>
+      <% end %>
+    </div>
   </div>
 </div>

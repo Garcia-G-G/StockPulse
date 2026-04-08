@@ -1,40 +1,44 @@
-<%# Ambient layers %>
-<div class="aurora"><canvas id="auroraCanvas" data-controller="landing--aurora"></canvas></div>
-<canvas id="particleCanvas" data-controller="landing--particles"></canvas>
-<div class="orb orb-1"></div><div class="orb orb-2"></div>
-<div class="grid-overlay"></div><div class="noise"></div>
-
-<div class="auth-container">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <svg viewBox="0 0 26 26" fill="none"><rect x="2" y="2" width="22" height="22" rx="6" stroke="url(#lg2)" stroke-width="1.8"/><polyline points="7,17 10.5,11 15,14 20,7" stroke="url(#lg2)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg2" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
-      <span>StockPulse</span>
+<div class="auth-page">
+  <div class="auth-left">
+    <a href="/" class="auth-back">← Back to home</a>
+    <div class="auth-left-content">
+      <h2>Start tracking markets<br>in under a minute.</h2>
+      <div class="auth-features">
+        <div class="auth-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Real-time data for 8,400+ assets</div>
+        <div class="auth-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Alerts via Telegram, email, WhatsApp</div>
+        <div class="auth-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Daily AI market briefings</div>
+        <div class="auth-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Free forever — no credit card</div>
+      </div>
     </div>
-    <div class="auth-title">Create your account</div>
-    <div class="auth-subtitle">Start tracking markets in seconds</div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <h1 class="auth-title">Create account</h1>
+      <p class="auth-subtitle">Already have one? <a href="<%= new_session_path(resource_name) %>">Sign in</a></p>
 
-    <%= render "devise/shared/error_messages", resource: resource %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { autocomplete: "off" }) do |f| %>
-      <div class="auth-field">
-        <label class="auth-label">Name</label>
-        <%= f.text_field :name, class: "auth-input", placeholder: "Your name", autofocus: true, required: true %>
-      </div>
-      <div class="auth-field">
-        <label class="auth-label">Email</label>
-        <%= f.email_field :email, class: "auth-input", placeholder: "you@example.com", required: true, value: resource.email.presence || params[:email] %>
-      </div>
-      <div class="auth-field">
-        <label class="auth-label">Password</label>
-        <%= f.password_field :password, class: "auth-input", placeholder: "Min 8 characters", autocomplete: "new-password", required: true %>
-      </div>
-      <div class="auth-field">
-        <label class="auth-label">Confirm Password</label>
-        <%= f.password_field :password_confirmation, class: "auth-input", placeholder: "Repeat password", autocomplete: "new-password", required: true %>
-      </div>
-      <%= f.submit "Create Account", class: "auth-btn" %>
-    <% end %>
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { autocomplete: "off" }) do |f| %>
+        <div class="auth-field">
+          <label class="auth-label">Name</label>
+          <%= f.text_field :name, class: "auth-input", placeholder: "Your name", autofocus: true, required: true %>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">Email</label>
+          <%= f.email_field :email, class: "auth-input", placeholder: "you@example.com", required: true, value: resource.email.presence || params[:email] %>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">Password</label>
+          <%= f.password_field :password, class: "auth-input", placeholder: "Min 8 characters", autocomplete: "new-password", required: true %>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">Confirm password</label>
+          <%= f.password_field :password_confirmation, class: "auth-input", placeholder: "Repeat password", autocomplete: "new-password", required: true %>
+        </div>
+        <%= f.submit "Create account", class: "auth-btn" %>
+      <% end %>
 
-    <%= render "devise/shared/links" %>
+      <p class="auth-terms">By signing up you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
+    </div>
   </div>
 </div>
