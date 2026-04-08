@@ -30,7 +30,7 @@ export default class extends Controller {
         this.sparkData[i].shift()
       })
       this.render()
-    }, 2500)
+    }, 5000)
   }
 
   disconnect() { clearInterval(this.interval) }

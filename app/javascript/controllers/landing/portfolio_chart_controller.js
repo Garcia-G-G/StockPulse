@@ -10,7 +10,7 @@ export default class extends Controller {
     }
     // Wait for layout, then draw
     setTimeout(() => this.draw(), 100)
-    this.interval = setInterval(() => this.update(), 1800)
+    this.interval = setInterval(() => this.update(), 3000)
   }
 
   disconnect() {
