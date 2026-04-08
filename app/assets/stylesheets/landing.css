@@ -59,62 +59,16 @@ body::after{
   50%{background-position:0% 0%}
 }
 
-/* === BACKGROUND — Pure CSS, runs on GPU compositor thread, zero JS === */
-.bg-aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.aurora-band{
-  position:absolute;width:120%;left:-10%;
-  /* Use height instead of box-shadow for glow effect — no repaint cost */
-  height:40px;opacity:0.03;
-  will-change:transform;
-}
-.aurora-band-1{
-  top:30%;
-  background:linear-gradient(90deg,transparent 0%,rgba(59,130,246,0.5) 30%,rgba(99,102,241,0.3) 70%,transparent 100%);
-  animation:aurora-drift-1 25s ease-in-out infinite;
-}
-.aurora-band-2{
-  top:50%;
-  background:linear-gradient(90deg,transparent 0%,rgba(99,102,241,0.3) 40%,rgba(6,182,212,0.2) 60%,transparent 100%);
-  animation:aurora-drift-2 30s ease-in-out infinite;
-}
-.aurora-band-3{
-  top:70%;
-  background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.25) 50%,transparent 100%);
-  animation:aurora-drift-3 20s ease-in-out infinite;
-}
-@keyframes aurora-drift-1{
-  0%,100%{transform:translateY(0) scaleY(1)}
-  50%{transform:translateY(-40px) scaleY(1.5)}
-}
-@keyframes aurora-drift-2{
-  0%,100%{transform:translateY(0) scaleY(1)}
-  50%{transform:translateY(30px) scaleY(1.3)}
-}
-@keyframes aurora-drift-3{
-  0%,100%{transform:translateY(0) scaleY(1)}
-  50%{transform:translateY(-20px) scaleY(1.2)}
-}
+/* Aurora and orbs REMOVED — the mesh gradient on body handles all background color */
 
-/* Orbs — large soft gradients, NO filter:blur (expensive). The radial-gradient fades to transparent naturally. */
-.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;opacity:0.25;will-change:transform}
-.orb-1{width:800px;height:800px;top:-20%;left:-15%;background:radial-gradient(circle,rgba(59,130,246,0.08) 0%,transparent 60%);animation:orb-move-1 30s ease-in-out infinite}
-.orb-3{width:700px;height:700px;top:30%;right:-5%;background:radial-gradient(circle,rgba(99,102,241,0.05) 0%,transparent 55%);animation:orb-move-2 25s ease-in-out infinite}
-@keyframes orb-move-1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,50px)}}
-@keyframes orb-move-2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
-
-/* === GRID OVERLAY === */
+/* === GRID OVERLAY — static, no animation === */
 .grid-bg{
   position:fixed;inset:0;z-index:0;pointer-events:none;
-  opacity:0.04;
+  opacity:0.03;
   background-image:
     linear-gradient(rgba(59,130,246,0.3) 1px, transparent 1px),
     linear-gradient(90deg, rgba(59,130,246,0.3) 1px, transparent 1px);
   background-size:80px 80px;
-  animation:grid-move 30s linear infinite;
-}
-@keyframes grid-move{
-  0%{transform:translate(0,0)}
-  100%{transform:translate(80px,80px)}
 }
 
 /* === CSS-ONLY FEATURE VISUALS === */
@@ -124,42 +78,33 @@ body::after{
   position:absolute;bottom:30%;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent);
   opacity:0.4;
-  animation:fv-stream-move 3s ease-in-out infinite;
 }
 .fv-line::before{
   content:'';position:absolute;bottom:0;left:0;right:0;height:40px;
   background:linear-gradient(0deg,transparent,rgba(59,130,246,0.06));
   transform:translateY(100%);
 }
-@keyframes fv-stream-move{
-  0%{transform:translateX(-100%) scaleX(0.6)}
-  50%{transform:translateX(0%) scaleX(1)}
-  100%{transform:translateX(100%) scaleX(0.6)}
-}
+/* fv-stream-move removed — static line */
 
 .fv-bars{display:flex;align-items:flex-end;gap:3px;padding:20px 16px;height:100%}
 .fv-bar{
   flex:1;border-radius:2px 2px 0 0;
   background:linear-gradient(0deg,rgba(16,185,129,0.05),rgba(16,185,129,0.2));
   height:var(--h);
-  animation:fv-bar-pulse 2s ease-in-out infinite;
-  animation-delay:calc(var(--i) * 0.12s);
 }
 .fv-bar:nth-child(odd){background:linear-gradient(0deg,rgba(244,63,94,0.04),rgba(244,63,94,0.15))}
-@keyframes fv-bar-pulse{0%,100%{transform:scaleY(1)}50%{transform:scaleY(0.7)}}
+/* fv-bar-pulse removed — static bars */
 
 .fv-dots{position:relative;height:100%}
 .fv-dot{
   position:absolute;width:5px;height:5px;border-radius:50%;
   background:rgba(139,92,246,0.35);
-  animation:fv-dot-float 4s ease-in-out infinite;
-  animation-delay:calc(var(--i) * 0.5s);
 }
 .fv-dot:nth-child(1){top:20%;left:15%}.fv-dot:nth-child(2){top:60%;left:35%}
 .fv-dot:nth-child(3){top:30%;left:55%}.fv-dot:nth-child(4){top:70%;left:75%}
 .fv-dot:nth-child(5){top:45%;left:25%}.fv-dot:nth-child(6){top:15%;left:65%}
 .fv-dot:nth-child(7){top:55%;left:85%}.fv-dot:nth-child(8){top:80%;left:45%}
-@keyframes fv-dot-float{0%,100%{transform:translate(0,0);opacity:0.3}50%{transform:translate(8px,-8px);opacity:0.6}}
+/* fv-dot-float removed — static dots */
 
 /* === NAVIGATION === */
 .landing-nav{
