@@ -32,36 +32,52 @@ body{
   color:var(--text-primary);
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
-  background-image:
-    radial-gradient(ellipse 60% 50% at 25% 15%, rgba(59,130,246,0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 75% 55%, rgba(99,102,241,0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 35% at 15% 75%, rgba(16,185,129,0.07) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 35% at 85% 25%, rgba(6,182,212,0.06) 0%, transparent 45%);
-  background-size:200% 200%;
-  animation:mesh-drift 20s ease-in-out infinite;
-}
-@keyframes mesh-drift{
-  0%,100%{background-position:0% 0%}
-  25%{background-position:40% 30%}
-  50%{background-position:100% 60%}
-  75%{background-position:30% 80%}
-}
-body::after{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:
-    radial-gradient(ellipse 55% 40% at 60% 40%, rgba(59,130,246,0.08) 0%, transparent 45%),
-    radial-gradient(ellipse 40% 30% at 30% 70%, rgba(139,92,246,0.06) 0%, transparent 45%);
-  background-size:200% 200%;
-  animation:mesh-drift-2 28s ease-in-out infinite;
-}
-@keyframes mesh-drift-2{
-  0%,100%{background-position:100% 100%}
-  50%{background-position:0% 0%}
 }
 
-/* Aurora and orbs REMOVED — the mesh gradient on body handles all background color */
+/*
+ * BACKGROUND SYSTEM — Moving color blobs using ONLY transform (compositor-only).
+ *
+ * WHY NOT background-position: it triggers PAINT on every frame (confirmed by
+ * csstriggers.com and Smashing Magazine). Only transform and opacity are
+ * handled by the GPU compositor without repaints.
+ *
+ * Each .glow is a small div (300-400px) with a radial-gradient, animated
+ * via transform:translate. Small size = small GPU texture = minimal VRAM.
+ */
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.glow{position:absolute;border-radius:50%;pointer-events:none}
+.glow-1{
+  width:400px;height:400px;top:5%;left:15%;
+  background:radial-gradient(circle,rgba(59,130,246,0.18) 0%,transparent 70%);
+  animation:glow1 22s ease-in-out infinite;
+}
+.glow-2{
+  width:350px;height:350px;top:40%;right:10%;
+  background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);
+  animation:glow2 28s ease-in-out infinite;
+}
+.glow-3{
+  width:300px;height:300px;bottom:10%;left:5%;
+  background:radial-gradient(circle,rgba(16,185,129,0.08) 0%,transparent 70%);
+  animation:glow3 25s ease-in-out infinite;
+}
+/* Transform-only keyframes — compositor thread, zero paint, zero repaint */
+@keyframes glow1{
+  0%,100%{transform:translate(0,0)}
+  33%{transform:translate(80px,60px)}
+  66%{transform:translate(-40px,30px)}
+}
+@keyframes glow2{
+  0%,100%{transform:translate(0,0)}
+  50%{transform:translate(-60px,-50px)}
+}
+@keyframes glow3{
+  0%,100%{transform:translate(0,0)}
+  33%{transform:translate(50px,-40px)}
+  66%{transform:translate(-30px,20px)}
+}
 
-/* === GRID OVERLAY — static, no animation === */
+/* Static grid — no animation, just visual texture */
 .grid-bg{
   position:fixed;inset:0;z-index:0;pointer-events:none;
   opacity:0.03;
