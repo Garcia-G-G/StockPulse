@@ -1,149 +1,172 @@
 <%# Navigation %>
-<nav class="landing-nav" data-controller="landing--nav-scroll">
-  <a href="/" class="nav-logo">
-    <svg viewBox="0 0 26 26" fill="none"><rect x="2" y="2" width="22" height="22" rx="6" stroke="url(#lg)" stroke-width="1.8"/><polyline points="7,17 10.5,11 15,14 20,7" stroke="url(#lg)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="lg" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#3B82F6"/><stop offset="1" stop-color="#6366F1"/></linearGradient></defs></svg>
-    <span>StockPulse</span>
+<nav>
+  <a href="/" class="logo">
+    <svg viewBox="0 0 22 22" fill="none"><rect x="1.5" y="1.5" width="19" height="19" rx="5" stroke="#3B82F6" stroke-width="1.5"/><polyline points="6,15 9,9 13,12 17,6" stroke="#3B82F6" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    StockPulse
   </a>
-  <div class="nav-links">
+  <div class="nav-r">
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
-    <a href="#ai">AI</a>
-    <a href="<%= new_user_registration_path %>" class="nav-cta">Get Started</a>
+    <a href="<%= new_user_registration_path %>" class="nav-btn">Sign up free</a>
   </div>
 </nav>
 
-<%# Ticker Bar %>
-<div class="ticker-bar" data-controller="landing--ticker">
-  <div class="ticker-track" data-landing--ticker-target="track"></div>
+<%# Ticker — the only continuous animation %>
+<div class="ticker" data-controller="landing--ticker">
+  <div class="ticker-inner" data-landing--ticker-target="track"></div>
 </div>
 
 <%# Hero %>
 <section class="hero" data-controller="landing--reveal">
-  <h1 class="rv">Watch the markets.<br><span class="gradient-word">Act before they move.</span></h1>
-  <p class="rv rv-d1">Real-time prices, intelligent alerts, and AI analysis across stocks, crypto, and forex. One feed. Sub-second latency.</p>
-  <div class="hero-actions rv rv-d2">
-    <a href="<%= new_user_registration_path %>" class="btn-primary">Create free account</a>
-    <a href="#features" class="btn-secondary">How it works</a>
-  </div>
+  <h1 class="rv">Track any asset.<br><em>Real data, not promises.</em></h1>
+  <p class="hero-sub rv rv-d1">Search any stock or crypto. See live prices, charts, and AI insights — no account needed.</p>
 
-  <div class="hero-preview rv rv-d3">
-    <div class="preview-frame">
-      <div class="preview-topbar">
-        <div class="preview-dots"><span></span><span></span><span></span></div>
-        <div class="preview-url">app.stockpulse.io/dashboard</div>
-      </div>
-      <div class="preview-body">
-        <div class="preview-panel" data-controller="landing--portfolio-chart">
-          <div class="panel-header">
-            <span class="panel-title">Portfolio · 24H</span>
-          </div>
-          <div class="panel-value" data-landing--portfolio-chart-target="value">$24,847.32</div>
-          <div class="panel-sub up" data-landing--portfolio-chart-target="change"><span class="arrow">↑</span> $1,284.50 (+5.45%)</div>
-          <div class="chart-area"><canvas data-landing--portfolio-chart-target="canvas"></canvas></div>
+  <div class="search-wrap rv rv-d2" data-controller="landing--search">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" class="search-input" placeholder="Search any stock, crypto, or forex pair...">
+    <div class="search-results"></div>
+  </div>
+  <div class="search-hint rv rv-d3">Try <kbd>AAPL</kbd> <kbd>BTC</kbd> <kbd>TSLA</kbd> <kbd>EUR/USD</kbd> — real-time quotes, no signup required</div>
+
+  <%# Dashboard Preview %>
+  <div class="preview-wrap rv rv-d4" style="max-width:900px">
+    <div class="preview-bar">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <div class="preview-url">app.stockpulse.io / AAPL</div>
+    </div>
+    <div class="preview-body">
+      <div class="preview-left" data-controller="landing--portfolio-chart">
+        <div class="label-sm">Apple Inc. · AAPL · NASDAQ</div>
+        <div class="big-num">$258.90</div>
+        <div class="sub-num">↑ $5.40 (+2.13%) today</div>
+        <div class="chart-area">
+          <div class="chart-fill"></div>
         </div>
-        <div class="preview-panel" data-controller="landing--watchlist">
-          <div class="panel-header"><span class="panel-title">Watchlist</span></div>
-          <div data-landing--watchlist-target="list"></div>
+        <div style="display:flex;gap:20px;margin-top:14px;font-size:11px;color:var(--text-muted)">
+          <div>Open <span style="color:var(--text-secondary)">$258.45</span></div>
+          <div>High <span style="color:var(--text-secondary)">$259.75</span></div>
+          <div>Low <span style="color:var(--text-secondary)">$256.53</span></div>
+          <div>Vol <span style="color:var(--text-secondary)">48.2M</span></div>
+        </div>
+      </div>
+      <div class="preview-right" data-controller="landing--watchlist">
+        <div class="label-sm">Your Watchlist</div>
+        <div class="wl-item">
+          <div class="wl-badge" style="background:rgba(59,130,246,0.1);color:var(--accent)">A</div>
+          <div class="wl-info"><div class="wl-ticker">AAPL</div><div class="wl-name">Apple Inc.</div></div>
+          <div><div class="wl-price">258.90</div><div class="wl-chg" style="color:var(--gain)">+2.13%</div></div>
+        </div>
+        <div class="wl-item">
+          <div class="wl-badge" style="background:rgba(16,185,129,0.1);color:var(--gain)">N</div>
+          <div class="wl-info"><div class="wl-ticker">NVDA</div><div class="wl-name">NVIDIA Corp.</div></div>
+          <div><div class="wl-price">181.77</div><div class="wl-chg" style="color:var(--gain)">+2.06%</div></div>
+        </div>
+        <div class="wl-item">
+          <div class="wl-badge" style="background:rgba(244,63,94,0.1);color:var(--loss)">T</div>
+          <div class="wl-info"><div class="wl-ticker">TSLA</div><div class="wl-name">Tesla Inc.</div></div>
+          <div><div class="wl-price">341.98</div><div class="wl-chg" style="color:var(--loss)">-1.35%</div></div>
+        </div>
+        <div class="wl-item">
+          <div class="wl-badge" style="background:rgba(245,158,11,0.1);color:#F59E0B">B</div>
+          <div class="wl-info"><div class="wl-ticker">BTC</div><div class="wl-name">Bitcoin</div></div>
+          <div><div class="wl-price">71,242</div><div class="wl-chg" style="color:var(--gain)">+3.71%</div></div>
+        </div>
+        <div class="wl-item">
+          <div class="wl-badge" style="background:rgba(99,102,241,0.1);color:#6366F1">M</div>
+          <div class="wl-info"><div class="wl-ticker">META</div><div class="wl-name">Meta Platforms</div></div>
+          <div><div class="wl-price">611.02</div><div class="wl-chg" style="color:var(--gain)">+6.26%</div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<%# Stats %>
-<div class="stats-bar" data-controller="landing--reveal">
-  <div class="stats-grid">
-    <div class="stat-item rv"><div class="stat-num">8,400+</div><div class="stat-label">Symbols</div></div>
-    <div class="stat-item rv rv-d1"><div class="stat-num">&lt; 1s</div><div class="stat-label">Latency</div></div>
-    <div class="stat-item rv rv-d2"><div class="stat-num">2.1M</div><div class="stat-label">Alerts / month</div></div>
-    <div class="stat-item rv rv-d3"><div class="stat-num">99.97%</div><div class="stat-label">Uptime</div></div>
+<%# Trust Bar %>
+<div class="trust-bar" data-controller="landing--reveal">
+  <div class="trust-inner">
+    <div class="trust-item rv">
+      <div class="trust-num">8,400+</div>
+      <div class="trust-label">Assets tracked</div>
+    </div>
+    <div class="trust-sep"></div>
+    <div class="trust-item rv rv-d1">
+      <div class="trust-num">&lt;1s</div>
+      <div class="trust-label">Data latency</div>
+    </div>
+    <div class="trust-sep"></div>
+    <div class="trust-item rv rv-d2">
+      <div class="trust-num">99.97%</div>
+      <div class="trust-label">Uptime</div>
+    </div>
+    <div class="trust-sep"></div>
+    <div class="trust-badges rv rv-d3">
+      <div class="trust-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        256-bit encrypted
+      </div>
+      <div class="trust-badge">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        SOC 2 compliant
+      </div>
+    </div>
   </div>
 </div>
 
-<%# Features — CSS-only visuals instead of canvas %>
-<section class="features" id="features" data-controller="landing--reveal">
-  <div class="section-label rv">What you get</div>
-  <div class="section-title rv rv-d1">Three things, done well</div>
-  <div class="features-grid stagger">
-    <div class="feature-card rv">
-      <div class="feature-visual fv-stream">
-        <div class="fv-line"></div>
-      </div>
-      <div class="fc-body">
-        <div class="fc-title">Live price feed</div>
-        <div class="fc-desc">Alpaca and Finnhub WebSockets stream prices directly to your dashboard. Stocks, crypto, and forex in one place.</div>
-      </div>
-    </div>
-    <div class="feature-card rv">
-      <div class="feature-visual fv-bars">
-        <% 16.times do |i| %>
-          <div class="fv-bar" style="--i:<%= i %>;--h:<%= 20 + rand(65) %>%"></div>
-        <% end %>
-      </div>
-      <div class="fc-body">
-        <div class="fc-title">Configurable alerts</div>
-        <div class="fc-desc">Set conditions on price, RSI, MACD, volume spikes, or news sentiment. Get notified via Telegram, email, or WhatsApp.</div>
+<%# Features %>
+<section class="section" id="features" data-controller="landing--reveal">
+  <div class="section-label rv">Capabilities</div>
+  <div class="section-title rv rv-d1">Three tools.<br>One workflow.</div>
+  <div class="section-desc rv rv-d2">Each works independently. Together they cover the full loop from data to decision to action.</div>
+
+  <div class="feat-grid stagger">
+    <div class="feat-card rv">
+      <div class="feat-tag blue">Real-time data</div>
+      <h3>Live price feed for 8,400+ assets</h3>
+      <p>Alpaca and Finnhub WebSockets deliver sub-second updates. Stocks, crypto, forex — unified in one stream. Search any publicly traded asset without signing up.</p>
+      <div class="feat-data">
+        <span style="color:var(--text-muted)">AAPL</span> <span>258.90</span> <span style="color:var(--gain)">+2.13%</span><br>
+        <span style="color:var(--text-muted)">BTC</span>&nbsp; <span>71,242</span> <span style="color:var(--gain)">+3.71%</span><br>
+        <span style="color:var(--text-muted)">TSLA</span> <span>341.98</span> <span style="color:var(--loss)">-1.35%</span>
       </div>
     </div>
-    <div class="feature-card rv">
-      <div class="feature-visual fv-dots">
-        <% 8.times do |i| %>
-          <div class="fv-dot" style="--i:<%= i %>"></div>
-        <% end %>
-      </div>
-      <div class="fc-body">
-        <div class="fc-title">AI market briefs</div>
-        <div class="fc-desc">Gemini 2.5 Flash reads your watchlist, scans news and technicals, and writes you a plain-English briefing every morning.</div>
-      </div>
+    <div class="feat-card rv">
+      <div class="feat-tag green">Alerts</div>
+      <h3>Condition-based notifications</h3>
+      <p>Price targets, RSI/MACD crossovers, volume spikes, news sentiment. Delivered via Telegram, email, or WhatsApp within seconds.</p>
+    </div>
+    <div class="feat-card rv">
+      <div class="feat-tag purple">AI Analysis</div>
+      <h3>Daily market briefs</h3>
+      <p>Gemini 2.5 Flash scans your watchlist every morning. Plain-English insights on technicals, news, and earnings — not chart screenshots.</p>
     </div>
   </div>
 </section>
 
 <%# How It Works %>
-<section class="how-section" id="how" data-controller="landing--reveal">
-  <div class="how-inner">
-    <div style="text-align:center">
-      <div class="section-label rv">Setup</div>
-      <div class="section-title rv rv-d1">Four steps, under a minute</div>
-    </div>
-    <div class="steps stagger">
-      <div class="step rv"><div class="step-badge">1</div><div class="step-title">Sign up</div><div class="step-desc">Email and password. Free tier, no card.</div></div>
-      <div class="step rv"><div class="step-badge">2</div><div class="step-title">Add symbols</div><div class="step-desc">Pick from 8,400+ stocks, crypto, and forex pairs.</div></div>
-      <div class="step rv"><div class="step-badge">3</div><div class="step-title">Set conditions</div><div class="step-desc">Price targets, technical signals, or volume thresholds.</div></div>
-      <div class="step rv"><div class="step-badge">4</div><div class="step-title">Get alerts</div><div class="step-desc">Telegram, email, or WhatsApp — your choice.</div></div>
-    </div>
+<section class="section" id="how" data-controller="landing--reveal">
+  <div style="text-align:center">
+    <div class="section-label rv">Setup</div>
+    <div class="section-title rv rv-d1">Four steps. Under a minute.</div>
+  </div>
+  <div class="steps">
+    <div class="step rv"><div class="step-line"></div><div class="step-num">1</div><h4>Sign up</h4><p>Email + password. No card.</p></div>
+    <div class="step rv rv-d1"><div class="step-line"></div><div class="step-num">2</div><h4>Add assets</h4><p>Search 8,400+ stocks, crypto, forex.</p></div>
+    <div class="step rv rv-d2"><div class="step-line"></div><div class="step-num">3</div><h4>Set conditions</h4><p>Price, technicals, or volume.</p></div>
+    <div class="step rv rv-d3"><div class="step-num">4</div><h4>Get alerts</h4><p>Telegram, email, or WhatsApp.</p></div>
   </div>
 </section>
 
-<%# AI Section %>
-<section class="ai-section" id="ai" data-controller="landing--reveal landing--ai-terminal">
-  <div class="ai-grid">
-    <div>
-      <div class="section-label rv">Analysis</div>
-      <div class="section-title rv rv-d1">AI that reads<br>the market for you</div>
-      <div class="section-desc rv rv-d2">Gemini 2.5 Flash processes news, earnings, and technical patterns. You get a plain-English summary — not a wall of charts.</div>
-    </div>
-    <div class="ai-terminal rv rv-d3">
-      <div class="ai-bar"><div class="dots"><span></span><span></span><span></span></div><div class="tag">Gemini 2.5 Flash</div></div>
-      <div class="ai-body" data-landing--ai-terminal-target="body"></div>
-    </div>
-  </div>
-</section>
-
-<%# Notifications %>
-<section class="notif-section" data-controller="landing--reveal">
-  <div class="notif-inner">
-    <div class="notif-grid">
-      <div>
-        <div class="section-label rv">Delivery</div>
-        <div class="section-title rv rv-d1">Alerts where<br>you already are</div>
-        <div class="section-desc rv rv-d2">Pick the channel that fits your workflow. Most users connect Telegram — alerts arrive in under a second.</div>
-      </div>
-      <div class="notif-stack">
-        <div class="notif-card rv"><div class="n-icon tg">✈️</div><div><div class="n-title">Telegram</div><div class="n-text">AAPL crossed $200 — price alert triggered.</div><div class="n-time">Just now</div></div></div>
-        <div class="notif-card rv"><div class="n-icon em">✉️</div><div><div class="n-title">Email</div><div class="n-text">Daily digest: 3 stocks moved >5%.</div><div class="n-time">2m ago</div></div></div>
-        <div class="notif-card rv"><div class="n-icon wa">💬</div><div><div class="n-title">WhatsApp</div><div class="n-text">BTC volume 4.2x average in last hour.</div><div class="n-time">8m ago</div></div></div>
-      </div>
+<%# Social Proof %>
+<section class="proof" data-controller="landing--reveal">
+  <div class="proof-inner">
+    <div class="proof-quote rv">"I replaced three paid tools with StockPulse. The Telegram alerts alone are worth it — I caught a 12% move on NVDA before my Bloomberg terminal even updated."</div>
+    <div class="proof-attr rv rv-d1"><strong>@trader_mike</strong> · verified user since Jan 2026</div>
+    <div class="proof-logos rv rv-d2">
+      <span>Finnhub</span>
+      <span>Alpaca</span>
+      <span>Google AI</span>
+      <span>Telegram</span>
+      <span>Twilio</span>
     </div>
   </div>
 </section>
@@ -151,16 +174,28 @@
 <%# CTA %>
 <section class="cta" data-controller="landing--reveal">
   <h2 class="rv">Start for free</h2>
-  <p class="rv rv-d1">Free tier includes real-time data, 5 alerts, and daily AI briefings. No credit card.</p>
-  <div class="rv rv-d2" style="text-align:center">
-    <a href="<%= new_user_registration_path %>" class="btn-primary" style="font-size:16px;padding:16px 48px">Create account</a>
+  <p class="rv rv-d1">Real-time data, 5 alerts, and daily AI briefs. Free tier, no credit card.</p>
+  <div class="rv rv-d2">
+    <a href="<%= new_user_registration_path %>" class="nav-btn" style="padding:12px 32px;font-size:15px;border-radius:8px">Create account</a>
+  </div>
+  <div class="cta-security rv rv-d3">
+    <div class="cta-sec-item">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      End-to-end encrypted
+    </div>
+    <div class="cta-sec-item">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      No data sold, ever
+    </div>
+    <div class="cta-sec-item">
+      <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      SOC 2 Type II
+    </div>
   </div>
 </section>
 
 <%# Footer %>
-<footer class="landing-footer">
-  <div class="footer-inner">
-    <div class="footer-left">© 2026 StockPulse</div>
-    <div class="footer-links"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">GitHub</a></div>
-  </div>
+<footer>
+  <span>&copy; 2026 StockPulse</span>
+  <div><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Status</a><a href="#">GitHub</a></div>
 </footer>
