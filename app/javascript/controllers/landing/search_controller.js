@@ -6,7 +6,6 @@ export default class extends Controller {
   connect() {
     this.timeout = null
     this.visible = false
-    // Close on click outside
     this.outsideClick = (e) => {
       if (!this.element.contains(e.target)) this.hide()
     }
@@ -42,12 +41,25 @@ export default class extends Controller {
       this.listTarget.innerHTML = data.map(r => {
         const up = (r.change || 0) >= 0
         const priceHtml = r.price ? `<div><div class="sr-price">$${r.price.toLocaleString("en", {minimumFractionDigits: 2})}</div><div class="sr-chg" style="color:${up ? "#10B981" : "#F43F5E"}">${up ? "+" : ""}${(r.change || 0).toFixed(2)}%</div></div>` : ""
-        return `<a href="/quote/${r.symbol}" class="sr-item"><div><div class="sr-name">${r.name || r.symbol}</div><div class="sr-sym">${r.symbol}${r.type ? " · " + r.type : ""}</div></div>${priceHtml}</a>`
+        return `<div class="sr-item" data-action="click->landing--search#selectResult" data-symbol="${r.symbol}" data-name="${(r.name || r.symbol).replace(/"/g, '&quot;')}"><div><div class="sr-name">${r.name || r.symbol}</div><div class="sr-sym">${r.symbol}${r.type ? " · " + r.type : ""}</div></div>${priceHtml}</div>`
       }).join("")
       this.show()
     } catch {
       // silently fail
     }
+  }
+
+  selectResult(e) {
+    e.preventDefault()
+    const symbol = e.currentTarget.dataset.symbol
+    const name = e.currentTarget.dataset.name
+    // Update the hero card via custom event
+    document.dispatchEvent(new CustomEvent("stockpulse:quote-selected", {
+      detail: { symbol, name }
+    }))
+    // Update input and close dropdown
+    this.inputTarget.value = symbol
+    this.hide()
   }
 
   show() {

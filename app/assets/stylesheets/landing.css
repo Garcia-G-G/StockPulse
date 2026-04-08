@@ -224,8 +224,8 @@ section{position:relative;z-index:1}
 }
 .hc-change{font-size:13px;font-weight:500;margin-bottom:16px}
 .hc-change.up{color:var(--gain)}.hc-change.dn{color:var(--loss)}
-.hc-chart{height:120px;position:relative;margin-bottom:16px}
-.hc-chart canvas{width:100%;height:100%}
+.hc-chart-wrap{height:120px;position:relative;margin-bottom:16px}
+.hc-chart-wrap canvas{width:100%;height:100%}
 .hc-stats{
   display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
   padding-top:14px;border-top:1px solid var(--border);

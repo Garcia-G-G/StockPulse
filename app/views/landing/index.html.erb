@@ -45,33 +45,27 @@
       </div>
     </div>
     <div class="hero-right rv rv-d3">
-      <div class="hero-card">
+      <div class="hero-card" data-controller="landing--hero-card">
         <div class="hc-header">
           <div class="hc-tabs">
-            <span class="hc-tab active">AAPL</span>
-            <span class="hc-tab">BTC</span>
-            <span class="hc-tab">TSLA</span>
+            <span class="hc-tab active" data-action="click->landing--hero-card#selectTab" data-symbol="AAPL" data-name="Apple Inc.">AAPL</span>
+            <span class="hc-tab" data-action="click->landing--hero-card#selectTab" data-symbol="BTC" data-name="Bitcoin">BTC</span>
+            <span class="hc-tab" data-action="click->landing--hero-card#selectTab" data-symbol="TSLA" data-name="Tesla Inc.">TSLA</span>
           </div>
           <span class="hc-live"><span class="hc-live-dot"></span>Live</span>
         </div>
         <div class="hc-body">
-          <div class="hc-symbol">Apple Inc. <span class="hc-exchange">NASDAQ</span></div>
-          <div class="hc-price">$258.90</div>
-          <div class="hc-change up">+$5.40 (+2.13%) today</div>
-          <div class="hc-chart" data-controller="landing--portfolio-chart">
-            <canvas data-landing--portfolio-chart-target="canvas" style="width:100%;height:100%"></canvas>
-          </div>
-          <div class="hc-stats">
-            <div><span class="hc-stat-label">Open</span><span class="hc-stat-val">$258.45</span></div>
-            <div><span class="hc-stat-label">High</span><span class="hc-stat-val">$259.75</span></div>
-            <div><span class="hc-stat-label">Low</span><span class="hc-stat-val">$256.53</span></div>
-            <div><span class="hc-stat-label">Vol</span><span class="hc-stat-val">48.2M</span></div>
+          <div class="hc-symbol" data-landing--hero-card-target="symbol">Apple Inc. <span class="hc-exchange">NASDAQ</span></div>
+          <div class="hc-price" data-landing--hero-card-target="price">Loading...</div>
+          <div class="hc-change up" data-landing--hero-card-target="change">—</div>
+          <div class="hc-chart-wrap">
+            <canvas data-landing--hero-card-target="chart" style="width:100%;height:100%"></canvas>
           </div>
         </div>
-        <div class="hc-alert">
+        <a href="<%= new_user_registration_path %>" class="hc-alert">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span>Set alert for AAPL</span>
-        </div>
+          <span data-landing--hero-card-target="alertLabel">Set alert for AAPL</span>
+        </a>
       </div>
     </div>
   </div>
