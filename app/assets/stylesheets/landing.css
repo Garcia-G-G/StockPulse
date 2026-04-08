@@ -41,24 +41,12 @@ body{
   background-attachment:fixed;
 }
 
-/* === CSS-ONLY FEATURE VISUALS === */
-/* Replaces canvas animations — runs on compositor, no JS, no repaints */
+/* === CSS-ONLY FEATURE VISUALS — Static, no animation === */
 .fv-stream{position:relative;overflow:hidden}
 .fv-line{
-  position:absolute;bottom:30%;left:0;right:0;height:2px;
+  position:absolute;bottom:30%;left:10%;right:10%;height:2px;
   background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent);
-  opacity:0.4;
-  animation:fv-stream-move 3s ease-in-out infinite;
-}
-.fv-line::before{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:40px;
-  background:linear-gradient(0deg,transparent,rgba(59,130,246,0.06));
-  transform:translateY(100%);
-}
-@keyframes fv-stream-move{
-  0%{transform:translateX(-100%) scaleX(0.6)}
-  50%{transform:translateX(0%) scaleX(1)}
-  100%{transform:translateX(100%) scaleX(0.6)}
+  opacity:0.5;
 }
 
 .fv-bars{display:flex;align-items:flex-end;gap:3px;padding:20px 16px;height:100%}
@@ -66,24 +54,19 @@ body{
   flex:1;border-radius:2px 2px 0 0;
   background:linear-gradient(0deg,rgba(16,185,129,0.05),rgba(16,185,129,0.2));
   height:var(--h);
-  animation:fv-bar-pulse 2s ease-in-out infinite;
-  animation-delay:calc(var(--i) * 0.12s);
 }
 .fv-bar:nth-child(odd){background:linear-gradient(0deg,rgba(244,63,94,0.04),rgba(244,63,94,0.15))}
-@keyframes fv-bar-pulse{0%,100%{transform:scaleY(1)}50%{transform:scaleY(0.7)}}
 
 .fv-dots{position:relative;height:100%}
 .fv-dot{
   position:absolute;width:5px;height:5px;border-radius:50%;
   background:rgba(139,92,246,0.35);
-  animation:fv-dot-float 4s ease-in-out infinite;
-  animation-delay:calc(var(--i) * 0.5s);
 }
+/* Keep positions, remove animation */
 .fv-dot:nth-child(1){top:20%;left:15%}.fv-dot:nth-child(2){top:60%;left:35%}
 .fv-dot:nth-child(3){top:30%;left:55%}.fv-dot:nth-child(4){top:70%;left:75%}
 .fv-dot:nth-child(5){top:45%;left:25%}.fv-dot:nth-child(6){top:15%;left:65%}
 .fv-dot:nth-child(7){top:55%;left:85%}.fv-dot:nth-child(8){top:80%;left:45%}
-@keyframes fv-dot-float{0%,100%{transform:translate(0,0);opacity:0.3}50%{transform:translate(8px,-8px);opacity:0.6}}
 
 /* === NAVIGATION === */
 .landing-nav{
