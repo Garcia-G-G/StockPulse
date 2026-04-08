@@ -168,6 +168,20 @@ section{position:relative;z-index:1}
 }
 .btn-secondary:hover{border-color:rgba(255,255,255,0.2);color:var(--text-primary)}
 
+/* === SECTION-LEVEL STATIC GRADIENTS === */
+.hero::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:800px;height:600px;
+  background:radial-gradient(ellipse,rgba(59,130,246,0.08) 0%,transparent 70%);
+  pointer-events:none;z-index:-1;
+}
+.features::before{
+  content:'';position:absolute;top:0;right:0;
+  width:500px;height:400px;
+  background:radial-gradient(ellipse,rgba(99,102,241,0.05) 0%,transparent 70%);
+  pointer-events:none;z-index:-1;
+}
+
 /* === HERO DASHBOARD PREVIEW === */
 .hero-preview{
   margin-top:64px;width:100%;max-width:1000px;
