@@ -29,7 +29,6 @@ Rails.application.routes.draw do
   # Root routing based on auth state
   unauthenticated :user do
     root "landing#index"
-    get "/api/prices", to: "landing#prices"
     get "/api/search", to: "landing#search"
     get "/quote/:symbol", to: "quotes#show", as: "public_quote"
   end
