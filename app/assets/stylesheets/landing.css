@@ -108,13 +108,17 @@ body{
 .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1.5px;background:var(--accent);transition:width 0.3s ease}
 .nav-links a:hover{color:var(--text-primary)}
 .nav-links a:hover::after{width:100%}
-.nav-cta,.nav-cta:visited,.nav-cta:link{
-  padding:8px 22px;border-radius:8px;font-size:13px;font-weight:550;
-  background:#3B82F6;color:#fff;border:none;cursor:pointer;
-  text-decoration:none;display:inline-block;transition:background 0.2s;
+.nav-links .nav-cta,
+.nav-links .nav-cta:visited,
+.nav-links .nav-cta:link,
+.nav-links .nav-cta:active,
+a.nav-cta{
+  padding:8px 22px !important;border-radius:8px !important;font-size:13px !important;font-weight:550 !important;
+  background:#3B82F6 !important;color:#fff !important;border:none !important;cursor:pointer;
+  text-decoration:none !important;display:inline-block;transition:background 0.2s;
 }
-.nav-cta:hover{background:#2563EB}
-.nav-cta::after{display:none}
+.nav-links .nav-cta:hover,a.nav-cta:hover{background:#2563EB !important}
+.nav-cta::after{display:none !important}
 
 /* === NAV LIVE INDICATOR === */
 .nav-live{
@@ -252,7 +256,7 @@ section{position:relative;z-index:1}
 
 /* Hero search bar */
 .hero-search{
-  width:100%;max-width:560px;position:relative;margin-bottom:28px;
+  width:100%;max-width:560px;position:relative;margin-bottom:28px;z-index:10;
 }
 .hero-search-input{
   width:100%;padding:16px 22px 16px 48px;
