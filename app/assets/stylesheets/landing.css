@@ -32,6 +32,32 @@ body{
   color:var(--text-primary);
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(ellipse 50% 40% at 30% 20%, rgba(59,130,246,0.13) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 35% at 70% 60%, rgba(99,102,241,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 35% 30% at 20% 80%, rgba(16,185,129,0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 30% at 80% 30%, rgba(6,182,212,0.04) 0%, transparent 50%);
+  background-size:200% 200%;
+  background-attachment:fixed;
+  animation:mesh-drift 25s ease-in-out infinite;
+}
+@keyframes mesh-drift{
+  0%,100%{background-position:0% 0%}
+  25%{background-position:50% 25%}
+  50%{background-position:100% 50%}
+  75%{background-position:25% 75%}
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    radial-gradient(ellipse 50% 35% at 55% 45%, rgba(59,130,246,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 35% 25% at 35% 65%, rgba(139,92,246,0.035) 0%, transparent 50%);
+  background-size:200% 200%;
+  animation:mesh-drift-2 30s ease-in-out infinite;
+}
+@keyframes mesh-drift-2{
+  0%,100%{background-position:100% 100%}
+  50%{background-position:0% 0%}
 }
 
 /* === BACKGROUND — Pure CSS, runs on GPU compositor thread, zero JS === */
@@ -76,6 +102,21 @@ body{
 .orb-3{width:700px;height:700px;top:30%;right:-5%;background:radial-gradient(circle,rgba(99,102,241,0.05) 0%,transparent 55%);animation:orb-move-2 25s ease-in-out infinite}
 @keyframes orb-move-1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,50px)}}
 @keyframes orb-move-2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+
+/* === GRID OVERLAY === */
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:0.025;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.3) 1px, transparent 1px);
+  background-size:80px 80px;
+  animation:grid-move 30s linear infinite;
+}
+@keyframes grid-move{
+  0%{transform:translate(0,0)}
+  100%{transform:translate(80px,80px)}
+}
 
 /* === CSS-ONLY FEATURE VISUALS === */
 /* Replaces canvas animations — runs on compositor, no JS, no repaints */
@@ -154,6 +195,20 @@ body{
 .nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 24px rgba(59,130,246,0.35)}
 .nav-cta:hover::before{opacity:1}
 
+/* === NAV LIVE INDICATOR === */
+.nav-live{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:500;color:var(--gain);
+  padding:2px 8px;border-radius:10px;
+  background:rgba(16,185,129,0.08);
+  margin-left:8px;
+}
+.nav-live-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--gain);
+  animation:live-pulse 2s ease-in-out infinite;
+}
+@keyframes live-pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
 /* === TICKER BAR === */
 .ticker-bar{
   position:fixed;top:64px;left:0;right:0;z-index:99;
@@ -227,6 +282,38 @@ section{position:relative;z-index:1}
   transition:all 0.4s cubic-bezier(0.22,1,0.36,1);
 }
 .btn-secondary:hover{border-color:rgba(255,255,255,0.15);color:var(--text-primary);background:rgba(255,255,255,0.05)}
+
+/* Hero search bar */
+.hero-search{
+  width:100%;max-width:560px;position:relative;margin-bottom:28px;
+}
+.hero-search-input{
+  width:100%;padding:16px 22px 16px 48px;
+  background:var(--bg-surface);border:1px solid var(--border-light);
+  border-radius:12px;color:var(--text-primary);font-size:15px;
+  font-family:'Inter',sans-serif;outline:none;
+  transition:border-color 0.2s;
+}
+.hero-search-input:focus{border-color:var(--accent)}
+.hero-search-input::placeholder{color:var(--text-muted)}
+.hero-search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
+.hero-search .search-results{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;
+  background:var(--bg-card-solid);border:1px solid var(--border-light);
+  border-radius:12px;overflow:hidden;display:none;z-index:10;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);padding:4px;
+}
+.sr-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;border-radius:8px;cursor:pointer;text-decoration:none;color:var(--text-primary);
+  transition:background 0.15s;
+}
+.sr-item:hover{background:rgba(255,255,255,0.04)}
+.sr-name{font-size:14px;font-weight:500}
+.sr-sym{font-size:11px;color:var(--text-muted);margin-top:1px}
+.sr-price{font-family:'JetBrains Mono',monospace;font-size:13px;text-align:right}
+.sr-chg{font-size:11px;text-align:right}
+.sr-empty{padding:16px;text-align:center;font-size:13px;color:var(--text-muted)}
 
 /* === HERO DASHBOARD PREVIEW === */
 .hero-preview{
@@ -321,6 +408,24 @@ section{position:relative;z-index:1}
   color:var(--text-primary);
 }
 .stat-label{font-size:12px;color:var(--text-muted);margin-top:6px;font-weight:450;letter-spacing:0.3px}
+
+/* === TRUST STRIP === */
+.trust-strip{
+  padding:20px 48px;
+  border-bottom:1px solid var(--border);
+  background:rgba(10,15,28,0.4);
+}
+.trust-strip-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;justify-content:center;gap:32px;align-items:center;flex-wrap:wrap;
+}
+.trust-badge-item{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--text-secondary);font-weight:450;
+}
+.trust-sep-v{width:1px;height:20px;background:var(--border)}
+.trust-partner{font-size:11px;color:var(--text-muted)}
+.trust-partner-logos{font-size:12px;color:var(--text-secondary);font-weight:500}
 
 /* === FEATURES === */
 .features{padding:140px 48px;max-width:1100px;margin:0 auto}
@@ -445,6 +550,12 @@ section{position:relative;z-index:1}
 .n-title{font-size:13.5px;font-weight:580;margin-bottom:4px}
 .n-text{font-size:12.5px;color:var(--text-secondary);line-height:1.5}
 .n-time{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-top:5px}
+
+/* === SOCIAL PROOF === */
+.social-proof{padding:80px 48px;border-top:1px solid var(--border);background:rgba(10,15,28,0.3)}
+.social-proof-inner{max-width:700px;margin:0 auto;text-align:center}
+.proof-quote{font-size:18px;line-height:1.7;font-weight:400;font-style:italic;color:var(--text-primary);margin-bottom:16px}
+.proof-author{font-size:13px;color:var(--text-muted)}
 
 /* === CTA === */
 .cta{padding:140px 48px;text-align:center;position:relative}
