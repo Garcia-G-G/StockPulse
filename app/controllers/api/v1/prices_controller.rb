@@ -6,8 +6,11 @@ module Api
       skip_before_action :authenticate_api!, raise: false
 
       def current
-        symbols = params[:symbols]&.split(",")&.map(&:strip)&.map(&:upcase)
+        symbols = params[:symbols]&.split(",")&.map(&:strip)&.map(&:upcase)&.reject(&:blank?)
         return render json: { error: "symbols parameter required" }, status: :bad_request unless symbols&.any?
+
+        # Limit the number of symbols per request to prevent abuse
+        symbols = symbols.first(50)
 
         cache = Streaming::RedisPriceCache.new
         cached = cache.get_prices(symbols)
@@ -17,19 +20,28 @@ module Api
         if missing.any?
           client = FinnhubClient.new
           missing.each do |sym|
-            quote = client.quote(sym) rescue next
-            cached[sym] = {
-              "symbol" => sym,
-              "price" => quote["c"],
-              "change" => quote["d"],
-              "change_percent" => quote["dp"],
-              "volume" => quote["v"],
-              "high" => quote["h"],
-              "low" => quote["l"],
-              "source" => "finnhub_rest",
-              "updated_at" => Time.current.to_i
-            }
-            cache.store_price(sym, cached[sym])
+            begin
+              quote = client.quote(sym)
+              next if quote.nil? || quote["c"].to_f.zero?
+
+              cached[sym] = {
+                "symbol" => sym,
+                "price" => quote["c"],
+                "change" => quote["d"],
+                "change_percent" => quote["dp"],
+                "volume" => quote["v"],
+                "high" => quote["h"],
+                "low" => quote["l"],
+                "source" => "finnhub_rest",
+                "updated_at" => Time.current.to_i
+              }
+              cache.store_price(sym, cached[sym])
+            rescue BaseClient::RateLimitExceeded
+              break
+            rescue StandardError => e
+              Rails.logger.debug("[PricesController] Quote fetch failed for #{sym}: #{e.message}")
+              next
+            end
           end
         end
 

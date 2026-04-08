@@ -167,9 +167,15 @@ module Streaming
 
     def start_flush_loop
       Thread.new do
+        Thread.current.name = "stockpulse-flush"
         while @running.true?
-          flush_trades
-          sleep(FLUSH_INTERVAL)
+          begin
+            flush_trades
+            sleep(FLUSH_INTERVAL)
+          rescue StandardError => e
+            SystemLog.log(level: "error", component: "streaming", message: "Flush loop error: #{e.message}")
+            sleep(FLUSH_INTERVAL)
+          end
         end
       end
     end
@@ -265,9 +271,15 @@ module Streaming
 
     def start_snapshot_loop
       Thread.new do
+        Thread.current.name = "stockpulse-snapshot"
         while @running.true?
-          sleep(SNAPSHOT_INTERVAL)
-          save_snapshots
+          begin
+            sleep(SNAPSHOT_INTERVAL)
+            save_snapshots
+          rescue StandardError => e
+            SystemLog.log(level: "error", component: "streaming", message: "Snapshot loop error: #{e.message}")
+            sleep(SNAPSHOT_INTERVAL)
+          end
         end
       end
     end
@@ -296,6 +308,7 @@ module Streaming
 
     def start_stats_loop
       Thread.new do
+        Thread.current.name = "stockpulse-stats"
         while @running.true?
           @cache.update_stats({
             symbols_count: @subscriptions.size,

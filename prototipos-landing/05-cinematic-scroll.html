@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPulse — Real-Time Stock Market Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+        }
+
+        body {
+            background: #050507;
+            color: #F0F0F0;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        section {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== SCENE 1: THE HOOK ===== */
+        #scene1 {
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .hook-line1 {
+            font-size: 3.5rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1s forwards;
+            text-align: center;
+            letter-spacing: -1px;
+        }
+
+        .hook-line2 {
+            font-size: 2.5rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: #888;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 2s forwards;
+            text-align: center;
+        }
+
+        .chart-line-container {
+            width: 80%;
+            max-width: 600px;
+            height: 80px;
+            margin: 2rem auto;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 2.8s forwards;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-path {
+            fill: none;
+            stroke: #3B82F6;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 400;
+            stroke-dashoffset: 400;
+            animation: drawLine 2s ease-out 3s forwards;
+            filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.8));
+        }
+
+        .brand-name {
+            font-size: 4rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInGlow 1.2s ease-out 5.2s forwards;
+            text-shadow: 0 0 30px rgba(245, 158, 11, 0.6), 0 0 60px rgba(245, 158, 11, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.6;
+            animation: bounce 2s infinite;
+        }
+
+        .chevron {
+            font-size: 2rem;
+            color: #3B82F6;
+        }
+
+        /* ===== SCENE 2: THE PROBLEM ===== */
+        #scene2 {
+            background: radial-gradient(ellipse at 30% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .problem-text {
+            font-size: 2.8rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            text-align: center;
+            max-width: 800px;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.2s forwards;
+        }
+
+        .problem-sub {
+            font-size: 1.3rem;
+            color: #888;
+            text-align: center;
+            max-width: 700px;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.6s forwards;
+        }
+
+        .problem-highlight {
+            color: #3B82F6;
+            font-weight: 600;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1s forwards;
+        }
+
+        /* ===== SCENE 3: THE SOLUTION ===== */
+        #scene3 {
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .solution-headline {
+            font-size: 3rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.2s forwards;
+        }
+
+        .notification-grid {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 1000px;
+            padding: 0 2rem;
+        }
+
+        .notification-card {
+            background: #0a0a0c;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 1.5rem;
+            width: 280px;
+            opacity: 0;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+        }
+
+        .notification-card:nth-child(1) {
+            animation: slideInLeft 1s ease-out 0.6s forwards;
+        }
+
+        .notification-card:nth-child(2) {
+            animation: slideInDown 1s ease-out 0.8s forwards;
+        }
+
+        .notification-card:nth-child(3) {
+            animation: slideInRight 1s ease-out 1s forwards;
+        }
+
+        .notification-header {
+            font-weight: 600;
+            color: #3B82F6;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .notification-body {
+            font-size: 1rem;
+            color: #E0E0E0;
+            line-height: 1.5;
+        }
+
+        /* ===== SCENE 4: THE POWER ===== */
+        #scene4 {
+            flex-direction: column;
+            gap: 2rem;
+            background: radial-gradient(ellipse at 50% 30%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+        }
+
+        .power-headline {
+            font-size: 3rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.2s forwards;
+        }
+
+        .analysis-card {
+            background: #0a0a0c;
+            border: 2px solid #222;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 650px;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.6s forwards;
+            box-shadow: 0 0 40px rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .analysis-text {
+            font-size: 1.1rem;
+            color: #D0D0D0;
+            line-height: 1.8;
+            min-height: 80px;
+            font-family: 'Inter', monospace;
+        }
+
+        .analysis-footer {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .analysis-badge {
+            color: #F59E0B;
+            font-weight: 600;
+        }
+
+        /* ===== SCENE 5: THE SPEED ===== */
+        #scene5 {
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .speed-number {
+            font-size: 5rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            color: #3B82F6;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.2s forwards;
+            text-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+        }
+
+        .speed-label {
+            font-size: 1.5rem;
+            text-align: center;
+            color: #888;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.6s forwards;
+        }
+
+        .speed-pipeline {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            max-width: 700px;
+            gap: 1rem;
+            padding: 2rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1s forwards;
+        }
+
+        .pipeline-step {
+            text-align: center;
+            flex: 1;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .pipeline-arrow {
+            font-size: 2rem;
+            color: #3B82F6;
+            animation: slideArrow 1.5s ease-in-out 2s infinite;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #1a1a1e;
+            border-radius: 2px;
+            margin: 2rem 0;
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3B82F6, #60A5FA);
+            width: 0;
+            animation: fillProgress 1.5s ease-out 1.5s forwards;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+        }
+
+        .speed-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 2s forwards;
+        }
+
+        .stat-item {
+            font-size: 0.95rem;
+            color: #888;
+        }
+
+        .stat-value {
+            color: #F59E0B;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* ===== SCENE 6: THE CTA ===== */
+        #scene6 {
+            flex-direction: column;
+            gap: 2rem;
+            background: radial-gradient(ellipse at 50% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 60%);
+        }
+
+        .cta-headline {
+            font-size: 3.5rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.2s forwards;
+        }
+
+        .signup-card {
+            background: #0a0a0c;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 3rem;
+            max-width: 400px;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.6s forwards;
+            box-shadow: 0 16px 64px rgba(59, 130, 246, 0.15);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 8px;
+            color: #F0F0F0;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .cta-button {
+            width: 100%;
+            padding: 14px;
+            background: #3B82F6;
+            color: #FFF;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            margin-top: 1rem;
+        }
+
+        .cta-button:hover {
+            background: #60A5FA;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .cta-subtext {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1s forwards;
+        }
+
+        .signin-link {
+            color: #3B82F6;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .signin-link:hover {
+            color: #60A5FA;
+        }
+
+        /* ===== SCENE 7: FOOTER ===== */
+        #scene7 {
+            flex-direction: column;
+            gap: 2rem;
+            background: #000;
+            border-top: 1px solid #1a1a1e;
+        }
+
+        .footer-brand {
+            font-size: 2.5rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+            opacity: 0;
+            animation: fadeInGlow 1s ease-out 0.2s forwards;
+        }
+
+        .footer-tagline {
+            text-align: center;
+            color: #888;
+            font-size: 0.95rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.5s forwards;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 0.8s forwards;
+        }
+
+        .footer-link {
+            color: #3B82F6;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: #60A5FA;
+        }
+
+        .footer-copyright {
+            text-align: center;
+            color: #444;
+            font-size: 0.85rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease-out 1.1s forwards;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInGlow {
+            from {
+                opacity: 0;
+                filter: drop-shadow(0 0 0px rgba(245, 158, 11, 0));
+            }
+            to {
+                opacity: 1;
+                filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.6));
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateX(-50%) translateY(10px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes drawLine {
+            from {
+                stroke-dashoffset: 400;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideArrow {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(8px);
+            }
+        }
+
+        @keyframes fillProgress {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        /* ===== SCROLL REVEAL ===== */
+        .fade-in {
+            opacity: 0;
+        }
+
+        .fade-in.visible {
+            animation: fadeInUp 1s ease-out forwards;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hook-line1 {
+                font-size: 2rem;
+            }
+
+            .hook-line2 {
+                font-size: 1.5rem;
+            }
+
+            .brand-name {
+                font-size: 2.5rem;
+            }
+
+            .problem-text {
+                font-size: 1.8rem;
+            }
+
+            .solution-headline {
+                font-size: 2rem;
+            }
+
+            .notification-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .notification-card {
+                width: 100%;
+                max-width: 320px;
+            }
+
+            .speed-number {
+                font-size: 3rem;
+            }
+
+            .cta-headline {
+                font-size: 2.5rem;
+            }
+
+            .signup-card {
+                width: 90%;
+                max-width: 380px;
+            }
+
+            .speed-pipeline {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .pipeline-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SCENE 1: THE HOOK -->
+    <section id="scene1">
+        <h1 class="hook-line1">The market never sleeps.</h1>
+        <p class="hook-line2">Neither should your alerts.</p>
+
+        <div class="chart-line-container">
+            <svg viewBox="0 0 400 80" preserveAspectRatio="none">
+                <path class="chart-path" d="M 0 60 Q 100 20, 200 40 T 400 30" />
+            </svg>
+        </div>
+
+        <h2 class="brand-name">StockPulse</h2>
+
+        <div class="scroll-indicator">
+            <div class="chevron">▼</div>
+        </div>
+    </section>
+
+    <!-- SCENE 2: THE PROBLEM -->
+    <section id="scene2">
+        <p class="problem-text">You check your phone. Again.</p>
+        <p class="problem-sub">Did NVDA break $900? Is AAPL still falling?</p>
+        <p class="problem-highlight">There has to be a better way.</p>
+    </section>
+
+    <!-- SCENE 3: THE SOLUTION -->
+    <section id="scene3">
+        <h2 class="solution-headline">What if the market came to you?</h2>
+
+        <div class="notification-grid">
+            <div class="notification-card">
+                <div class="notification-header">🔔 Telegram</div>
+                <div class="notification-body">AAPL just crossed $235 (+2.4%)</div>
+            </div>
+            <div class="notification-card">
+                <div class="notification-header">📊 WhatsApp</div>
+                <div class="notification-body">Daily Briefing: Portfolio up 1.8%</div>
+            </div>
+            <div class="notification-card">
+                <div class="notification-header">⚡ Email</div>
+                <div class="notification-body">NVDA Volume spike: 3x average</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCENE 4: THE POWER -->
+    <section id="scene4">
+        <h2 class="power-headline">Powered by intelligence, not guesswork.</h2>
+
+        <div class="analysis-card">
+            <div class="analysis-text" id="typeWriter">
+                AAPL: Bullish reversal confirmed. RSI recovering from oversold at 32 to current 58. MACD crossover on daily. Target: $245.
+            </div>
+            <div class="analysis-footer">
+                <span class="analysis-badge">Gemini 2.5 Flash</span>
+                <span class="analysis-badge">•</span>
+                <span>50+ indicators • Updated hourly</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCENE 5: THE SPEED -->
+    <section id="scene5">
+        <div class="speed-number" id="speedCounter">0.0s</div>
+        <p class="speed-label">Average alert delivery time</p>
+
+        <div class="speed-pipeline">
+            <div class="pipeline-step">Market event</div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">Detection</div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">Analysis</div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">Your phone</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+
+        <div class="speed-stats">
+            <div class="stat-item"><div class="stat-value">99.9%</div> Uptime</div>
+            <div class="stat-item"><div class="stat-value">24/7</div> Monitoring</div>
+            <div class="stat-item"><div class="stat-value">Auto</div> Failover</div>
+        </div>
+    </section>
+
+    <!-- SCENE 6: THE CTA -->
+    <section id="scene6">
+        <h2 class="cta-headline">Your turn.</h2>
+
+        <div class="signup-card">
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="cta-button">Start Tracking</button>
+                <div class="cta-subtext">
+                    Free forever. No credit card. 30 seconds to start.
+                </div>
+                <div class="cta-subtext">
+                    Already have an account? <span class="signin-link">Sign in</span>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- SCENE 7: FOOTER -->
+    <section id="scene7">
+        <h3 class="footer-brand">StockPulse</h3>
+        <p class="footer-tagline">Built with Ruby on Rails 8 + Gemini AI</p>
+
+        <div class="footer-links">
+            <a href="#" class="footer-link">GitHub</a>
+            <a href="#" class="footer-link">Docs</a>
+            <a href="#" class="footer-link">API</a>
+            <a href="#" class="footer-link">Contact</a>
+        </div>
+
+        <p class="footer-copyright">© 2026 StockPulse. All rights reserved.</p>
+    </section>
+
+    <script>
+        // Counter animation for speed (0.0 to 0.3)
+        function animateCounter() {
+            const element = document.getElementById('speedCounter');
+            const target = 0.3;
+            const duration = 2000;
+            const start = performance.now();
+
+            function update(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const value = (target * progress).toFixed(1);
+                element.textContent = value + 's';
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        // Typewriter effect for analysis card
+        function typewriterEffect() {
+            const element = document.getElementById('typeWriter');
+            const fullText = element.textContent;
+            element.textContent = '';
+            let index = 0;
+
+            function type() {
+                if (index < fullText.length) {
+                    element.textContent += fullText.charAt(index);
+                    index++;
+                    setTimeout(type, 30);
+                }
+            }
+
+            type();
+        }
+
+        // Intersection Observer for scroll reveal
+        const observerOptions = {
+            threshold: 0.3
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const section = entry.target;
+
+                    // Trigger counter when Scene 5 comes into view
+                    if (section.id === 'scene5') {
+                        animateCounter();
+                    }
+
+                    // Trigger typewriter when Scene 4 comes into view
+                    if (section.id === 'scene4') {
+                        typewriterEffect();
+                    }
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Form submission
+        document.getElementById('signupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            alert(`Welcome to StockPulse, ${email}!\n\nYour alerts are now live. 🚀`);
+            document.getElementById('signupForm').reset();
+        });
+
+        // Prevent counter from running multiple times
+        let counterStarted = false;
+        function animateCounterOnce() {
+            if (!counterStarted) {
+                counterStarted = true;
+                animateCounter();
+            }
+        }
+
+        document.getElementById('speedCounter').addEventListener('wheel', () => {
+            animateCounterOnce();
+        }, { once: true });
+    </script>
+
+</body>
+</html>

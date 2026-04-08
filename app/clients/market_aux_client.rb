@@ -23,6 +23,9 @@ class MarketAuxClient < BaseClient
   private
 
   def api_key
-    ENV.fetch("MARKETAUX_API_KEY", "")
+    key = ENV.fetch("MARKETAUX_API_KEY", "")
+    raise "MARKETAUX_API_KEY not configured" if key.blank?
+
+    key
   end
 end

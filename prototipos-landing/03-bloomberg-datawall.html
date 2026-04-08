@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPulse - Real-time Stock Market Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0F1117;
+            --bg-surface: #1C1E27;
+            --text-primary: #E8E8ED;
+            --text-secondary: #8B8D97;
+            --accent: #3B82F6;
+            --green: #10B981;
+            --red: #F43F5E;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Dashboard Background */
+        .dashboard-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-primary);
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .ticker-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 48px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid rgba(139, 141, 151, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 60px;
+            padding: 0 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            animation: scroll 30s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .ticker-item {
+            white-space: nowrap;
+            display: flex;
+            gap: 8px;
+        }
+
+        .ticker-symbol {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .ticker-price {
+            color: var(--text-primary);
+            font-weight: 700;
+            min-width: 80px;
+        }
+
+        .ticker-change.up { color: var(--green); }
+        .ticker-change.down { color: var(--red); }
+
+        .dashboard-grid {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            width: calc(100% - 40px);
+            height: calc(100vh - 90px);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            grid-auto-rows: auto;
+            opacity: 0.7;
+            filter: blur(0.5px);
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid rgba(139, 141, 151, 0.15);
+            border-radius: 8px;
+            padding: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        /* Portfolio Chart Card */
+        .card-chart {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 180px;
+            display: block;
+        }
+
+        /* Market Indices */
+        .card-indices {
+            grid-column: 3;
+        }
+
+        .indices-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(139, 141, 151, 0.1);
+            font-size: 13px;
+        }
+
+        .indices-item:last-child {
+            border-bottom: none;
+        }
+
+        .indices-symbol {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .indices-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .indices-sparkline {
+            width: 40px;
+            height: 20px;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        /* Watchlist */
+        .card-watchlist {
+            grid-column: span 2;
+        }
+
+        .watchlist-table {
+            width: 100%;
+            font-size: 12px;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .watchlist-table th {
+            text-align: left;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(139, 141, 151, 0.1);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .watchlist-table td {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(139, 141, 151, 0.08);
+            vertical-align: middle;
+        }
+
+        .watchlist-symbol {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .watchlist-price {
+            color: var(--text-primary);
+        }
+
+        .watchlist-change {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .watchlist-change.up { color: var(--green); }
+        .watchlist-change.down { color: var(--red); }
+
+        /* Alerts Feed */
+        .card-alerts {
+            grid-column: 3;
+            grid-row: span 2;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            padding: 10px;
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 3px solid var(--accent);
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.4;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .alert-time {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        /* Volume Heatmap */
+        .card-heatmap {
+            grid-column: span 2;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+        }
+
+        .heatmap-block {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            background: var(--accent);
+            opacity: 0.6;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .heatmap-block:hover {
+            opacity: 1;
+        }
+
+        /* AI Summary */
+        .card-ai {
+            grid-column: 3;
+        }
+
+        .ai-summary {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* CTA Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            background: rgba(15, 17, 23, 0.4);
+        }
+
+        .cta-panel {
+            background: rgba(28, 30, 39, 0.95);
+            border: 1px solid rgba(139, 141, 151, 0.2);
+            border-radius: 12px;
+            padding: 48px;
+            max-width: 480px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            animation: panelFadeIn 0.6s ease-out;
+        }
+
+        @keyframes panelFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .logo-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .cta-tagline {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .cta-subtitle {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 32px;
+            line-height: 1.4;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #2563EB;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .cta-signin {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .cta-signin a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .cta-signin a:hover {
+            text-decoration: underline;
+        }
+
+        .avatars {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--green));
+            border: 2px solid var(--bg-surface);
+        }
+
+        .avatar:nth-child(2) {
+            background: linear-gradient(135deg, var(--green), var(--accent));
+            margin-left: -8px;
+        }
+
+        .avatar:nth-child(3) {
+            background: linear-gradient(135deg, var(--red), var(--accent));
+            margin-left: -8px;
+        }
+
+        .avatars-text {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        /* Below Fold Content */
+        .below-fold {
+            position: relative;
+            z-index: 20;
+            min-height: 100vh;
+            padding: 80px 40px;
+            margin-top: 100vh;
+        }
+
+        .below-fold-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: -1;
+        }
+
+        .feature-annotations {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-bottom: 80px;
+        }
+
+        .annotation {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .annotation:nth-child(2) { animation-delay: 0.2s; }
+        .annotation:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .annotation-arrow {
+            font-size: 32px;
+            margin-bottom: 16px;
+            color: var(--accent);
+        }
+
+        .annotation-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .annotation-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Features Strip */
+        .features-strip {
+            background: var(--bg-surface);
+            border-top: 1px solid rgba(139, 141, 151, 0.15);
+            border-bottom: 1px solid rgba(139, 141, 151, 0.15);
+            padding: 24px 40px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 80px;
+            flex-wrap: wrap;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .feature-item::before {
+            content: '•';
+            color: var(--accent);
+        }
+
+        /* Bottom CTA */
+        .bottom-cta {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .bottom-cta-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 32px;
+        }
+
+        .signup-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .signup-form input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-surface);
+            border: 1px solid rgba(139, 141, 151, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .signup-form input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .signup-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-start {
+            padding: 12px 32px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-start:hover {
+            background: #2563EB;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-chart, .card-watchlist, .card-indices {
+                grid-column: 1 !important;
+            }
+
+            .card-alerts, .card-ai {
+                grid-column: 1 !important;
+            }
+
+            .cta-panel {
+                margin: 20px;
+                padding: 32px;
+                max-width: 100%;
+            }
+
+            .feature-annotations {
+                grid-template-columns: 1fr;
+            }
+
+            .signup-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Background -->
+    <div class="dashboard-bg">
+        <!-- Scrolling Ticker -->
+        <div class="ticker-bar">
+            <div class="ticker-item">
+                <span class="ticker-symbol">AAPL</span>
+                <span class="ticker-price">$198.42</span>
+                <span class="ticker-change up">+2.14%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">GOOGL</span>
+                <span class="ticker-price">$156.78</span>
+                <span class="ticker-change down">-0.87%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">MSFT</span>
+                <span class="ticker-price">$441.22</span>
+                <span class="ticker-change up">+1.56%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">NVDA</span>
+                <span class="ticker-price">$918.65</span>
+                <span class="ticker-change up">+3.24%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">TSLA</span>
+                <span class="ticker-price">$245.89</span>
+                <span class="ticker-change down">-1.42%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">META</span>
+                <span class="ticker-price">$512.34</span>
+                <span class="ticker-change up">+4.12%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">AMZN</span>
+                <span class="ticker-price">$187.56</span>
+                <span class="ticker-change up">+1.89%</span>
+            </div>
+            <!-- Repeat for continuous scroll -->
+            <div class="ticker-item">
+                <span class="ticker-symbol">AAPL</span>
+                <span class="ticker-price">$198.42</span>
+                <span class="ticker-change up">+2.14%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">GOOGL</span>
+                <span class="ticker-price">$156.78</span>
+                <span class="ticker-change down">-0.87%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">MSFT</span>
+                <span class="ticker-price">$441.22</span>
+                <span class="ticker-change up">+1.56%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">NVDA</span>
+                <span class="ticker-price">$918.65</span>
+                <span class="ticker-change up">+3.24%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">TSLA</span>
+                <span class="ticker-price">$245.89</span>
+                <span class="ticker-change down">-1.42%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">META</span>
+                <span class="ticker-price">$512.34</span>
+                <span class="ticker-change up">+4.12%</span>
+            </div>
+            <div class="ticker-item">
+                <span class="ticker-symbol">AMZN</span>
+                <span class="ticker-price">$187.56</span>
+                <span class="ticker-change up">+1.89%</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Portfolio Chart -->
+            <div class="card card-chart">
+                <div class="card-title">Portfolio Performance</div>
+                <canvas class="chart-canvas" id="portfolioChart"></canvas>
+            </div>
+
+            <!-- Market Indices -->
+            <div class="card card-indices">
+                <div class="card-title">Market Indices</div>
+                <div class="indices-item">
+                    <span class="indices-symbol">S&P 500</span>
+                    <span class="indices-value">5,642.34</span>
+                    <canvas class="indices-sparkline" id="sparkline1"></canvas>
+                </div>
+                <div class="indices-item">
+                    <span class="indices-symbol">NASDAQ</span>
+                    <span class="indices-value">17,842.12</span>
+                    <canvas class="indices-sparkline" id="sparkline2"></canvas>
+                </div>
+                <div class="indices-item">
+                    <span class="indices-symbol">DOW</span>
+                    <span class="indices-value">43,521.98</span>
+                    <canvas class="indices-sparkline" id="sparkline3"></canvas>
+                </div>
+            </div>
+
+            <!-- Watchlist -->
+            <div class="card card-watchlist">
+                <div class="card-title">Watchlist</div>
+                <table class="watchlist-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Price</th>
+                            <th>Change</th>
+                            <th>Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody id="watchlistBody">
+                        <tr>
+                            <td class="watchlist-symbol">AAPL</td>
+                            <td class="watchlist-price">$198.42</td>
+                            <td class="watchlist-change up">+2.14%</td>
+                            <td>82.3M</td>
+                        </tr>
+                        <tr>
+                            <td class="watchlist-symbol">GOOGL</td>
+                            <td class="watchlist-price">$156.78</td>
+                            <td class="watchlist-change down">-0.87%</td>
+                            <td>45.2M</td>
+                        </tr>
+                        <tr>
+                            <td class="watchlist-symbol">MSFT</td>
+                            <td class="watchlist-price">$441.22</td>
+                            <td class="watchlist-change up">+1.56%</td>
+                            <td>28.9M</td>
+                        </tr>
+                        <tr>
+                            <td class="watchlist-symbol">NVDA</td>
+                            <td class="watchlist-price">$918.65</td>
+                            <td class="watchlist-change up">+3.24%</td>
+                            <td>156.7M</td>
+                        </tr>
+                        <tr>
+                            <td class="watchlist-symbol">TSLA</td>
+                            <td class="watchlist-price">$245.89</td>
+                            <td class="watchlist-change down">-1.42%</td>
+                            <td>92.1M</td>
+                        </tr>
+                        <tr>
+                            <td class="watchlist-symbol">META</td>
+                            <td class="watchlist-price">$512.34</td>
+                            <td class="watchlist-change up">+4.12%</td>
+                            <td>37.4M</td>
+                        </tr>
+                        <tr>
+                            <td class="watchlist-symbol">AMZN</td>
+                            <td class="watchlist-price">$187.56</td>
+                            <td class="watchlist-change up">+1.89%</td>
+                            <td>64.2M</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Alerts Feed -->
+            <div class="card card-alerts">
+                <div class="card-title">Live Alerts</div>
+                <div id="alertsFeed"></div>
+            </div>
+
+            <!-- Volume Heatmap -->
+            <div class="card card-heatmap">
+                <div class="card-title">Trading Volume Heatmap</div>
+                <div class="heatmap-grid" id="heatmapGrid"></div>
+            </div>
+
+            <!-- AI Summary -->
+            <div class="card card-ai">
+                <div class="card-title">AI Analysis</div>
+                <div class="ai-badge">Powered by Gemini</div>
+                <div class="ai-summary">
+                    <strong>Market Overview:</strong> Strong bullish sentiment across tech stocks. NVDA showing exceptional momentum. Recommend monitoring support levels at 915.00.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Overlay -->
+    <div class="overlay">
+        <div class="cta-panel">
+            <div class="logo">
+                StockPulse
+                <div class="logo-dot"></div>
+            </div>
+            <div class="cta-tagline">Professional stock monitoring for everyone</div>
+            <div class="cta-subtitle">See what's happening in the market, in real time</div>
+            <button class="btn-primary" onclick="handleSignup()">Create Free Account</button>
+            <div class="cta-signin">
+                Already have an account? <a href="#signin">Sign in</a>
+            </div>
+            <div class="avatars">
+                <div class="avatar"></div>
+                <div class="avatar"></div>
+                <div class="avatar"></div>
+                <span class="avatars-text">Join 2,400+ traders</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Below Fold Content -->
+    <div class="below-fold">
+        <div class="below-fold-bg"></div>
+
+        <!-- Feature Annotations -->
+        <div class="feature-annotations">
+            <div class="annotation">
+                <div class="annotation-arrow">📈</div>
+                <div class="annotation-title">Real-time Price Tracking</div>
+                <div class="annotation-desc">Watch price movements as they happen with sub-second latency</div>
+            </div>
+            <div class="annotation">
+                <div class="annotation-arrow">🔔</div>
+                <div class="annotation-title">Instant Notifications</div>
+                <div class="annotation-desc">Get alerts via Telegram, WhatsApp, or Email instantly</div>
+            </div>
+            <div class="annotation">
+                <div class="annotation-arrow">🤖</div>
+                <div class="annotation-title">Gemini AI Analysis</div>
+                <div class="annotation-desc">AI-powered insights to help inform your trading decisions</div>
+            </div>
+        </div>
+
+        <!-- Features Strip -->
+        <div class="features-strip">
+            <div class="feature-item">< 1s latency</div>
+            <div class="feature-item">50+ stocks</div>
+            <div class="feature-item">Telegram + WhatsApp + Email</div>
+            <div class="feature-item">AI-powered</div>
+            <div class="feature-item">Free tier</div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="bottom-cta">
+            <h2 class="bottom-cta-title">Ready to track the market?</h2>
+            <div class="signup-form">
+                <input type="email" placeholder="Enter your email" id="bottomEmail">
+                <input type="password" placeholder="Password" id="bottomPassword">
+                <button class="btn-start" onclick="handleBottomSignup()">Start Free</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard data
+        const stocks = [
+            { symbol: 'AAPL', basePrice: 198.42, baseChange: 2.14 },
+            { symbol: 'GOOGL', basePrice: 156.78, baseChange: -0.87 },
+            { symbol: 'MSFT', basePrice: 441.22, baseChange: 1.56 },
+            { symbol: 'NVDA', basePrice: 918.65, baseChange: 3.24 },
+            { symbol: 'TSLA', basePrice: 245.89, baseChange: -1.42 },
+            { symbol: 'META', basePrice: 512.34, baseChange: 4.12 },
+            { symbol: 'AMZN', basePrice: 187.56, baseChange: 1.89 }
+        ];
+
+        const alertMessages = [
+            'NVDA breaks above $920 resistance',
+            'High volume surge on META detected',
+            'TSLA dips below $245 support level',
+            'AAPL hits 52-week high',
+            'Tech sector bullish divergence',
+            'Support level holding at $156.50 GOOGL',
+            'MSFT approaching earnings season',
+            'Unusual options activity on META'
+        ];
+
+        // Update watchlist prices
+        function updateWatchlist() {
+            const tbody = document.getElementById('watchlistBody');
+            stocks.forEach((stock, idx) => {
+                const rows = tbody.querySelectorAll('tr');
+                if (rows[idx]) {
+                    const newPrice = stock.basePrice + (Math.random() - 0.5) * 2;
+                    const priceEl = rows[idx].querySelectorAll('td')[1];
+                    priceEl.textContent = '$' + newPrice.toFixed(2);
+
+                    const changeEl = rows[idx].querySelectorAll('td')[2];
+                    const newChange = stock.baseChange + (Math.random() - 0.5) * 2;
+                    changeEl.textContent = (newChange > 0 ? '+' : '') + newChange.toFixed(2) + '%';
+                    changeEl.className = 'watchlist-change ' + (newChange > 0 ? 'up' : 'down');
+
+                    // Flash effect
+                    rows[idx].style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                    setTimeout(() => rows[idx].style.backgroundColor = '', 200);
+                }
+            });
+        }
+
+        // Draw portfolio chart
+        function drawChart() {
+            const canvas = document.getElementById('portfolioChart');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+
+            const width = canvas.width / 2;
+            const height = canvas.height / 2;
+            const padding = 20;
+
+            // Clear
+            ctx.fillStyle = 'rgba(28, 30, 39, 0.8)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Generate or update data
+            if (!window.chartData) {
+                window.chartData = [];
+                for (let i = 0; i < 40; i++) {
+                    window.chartData.push(100 + Math.random() * 20);
+                }
+            } else if (window.chartData.length < 40) {
+                window.chartData.push(window.chartData[window.chartData.length - 1] + (Math.random() - 0.4) * 5);
+                if (window.chartData.length > 40) window.chartData.shift();
+            } else {
+                window.chartData.push(window.chartData[window.chartData.length - 1] + (Math.random() - 0.4) * 5);
+                window.chartData.shift();
+            }
+
+            const dataHeight = height - padding * 2;
+            const pointSpacing = (width - padding * 2) / window.chartData.length;
+            const maxValue = Math.max(...window.chartData);
+            const minValue = Math.min(...window.chartData);
+            const range = maxValue - minValue || 1;
+
+            // Draw gradient
+            const gradient = ctx.createLinearGradient(0, padding, 0, height - padding);
+            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
+
+            // Draw line
+            ctx.strokeStyle = '#3B82F6';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            window.chartData.forEach((value, idx) => {
+                const x = padding + idx * pointSpacing;
+                const y = height - padding - ((value - minValue) / range) * dataHeight;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Draw fill
+            ctx.lineTo(width - padding, height - padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+
+        // Draw sparklines
+        function drawSparkline(canvasId, color = '#10B981') {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+
+            const width = canvas.width / 2;
+            const height = canvas.height / 2;
+
+            const data = [];
+            for (let i = 0; i < 20; i++) {
+                data.push(50 + Math.random() * 40);
+            }
+
+            const maxValue = Math.max(...data);
+            const minValue = Math.min(...data);
+            const range = maxValue - minValue || 1;
+            const pointSpacing = width / data.length;
+            const dataHeight = height;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            data.forEach((value, idx) => {
+                const x = idx * pointSpacing;
+                const y = height - ((value - minValue) / range) * dataHeight;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
+        // Create heatmap
+        function createHeatmap() {
+            const grid = document.getElementById('heatmapGrid');
+            for (let i = 0; i < 30; i++) {
+                const block = document.createElement('div');
+                block.className = 'heatmap-block';
+                block.style.opacity = Math.random() * 0.7 + 0.3;
+                block.style.background = Math.random() > 0.7 ? '#F43F5E' : '#3B82F6';
+                grid.appendChild(block);
+            }
+        }
+
+        // Add alerts
+        function addAlert() {
+            const feed = document.getElementById('alertsFeed');
+            if (feed.children.length > 8) {
+                feed.removeChild(feed.firstChild);
+            }
+            const alert = document.createElement('div');
+            alert.className = 'alert-item';
+            const message = alertMessages[Math.floor(Math.random() * alertMessages.length)];
+            const time = new Date().toLocaleTimeString();
+            alert.innerHTML = `<strong>${message}</strong><br><span class="alert-time">${time}</span>`;
+            feed.insertBefore(alert, feed.firstChild);
+        }
+
+        // Handle signup
+        function handleSignup() {
+            alert('Signup form would open here!');
+            // In a real app, this would open a modal or redirect
+        }
+
+        function handleBottomSignup() {
+            const email = document.getElementById('bottomEmail').value;
+            const password = document.getElementById('bottomPassword').value;
+            if (email && password) {
+                alert('Welcome to StockPulse!');
+            } else {
+                alert('Please fill in all fields');
+            }
+        }
+
+        // Initialize
+        function init() {
+            drawChart();
+            drawSparkline('sparkline1', '#10B981');
+            drawSparkline('sparkline2', '#3B82F6');
+            drawSparkline('sparkline3', '#F43F5E');
+            createHeatmap();
+
+            // Add initial alerts
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => addAlert(), i * 200);
+            }
+
+            // Update animations
+            setInterval(updateWatchlist, 2000);
+            setInterval(addAlert, 5000);
+            setInterval(drawChart, 1500);
+
+            // Redraw sparklines
+            setInterval(() => {
+                drawSparkline('sparkline1', '#10B981');
+                drawSparkline('sparkline2', '#3B82F6');
+                drawSparkline('sparkline3', '#F43F5E');
+            }, 3000);
+        }
+
+        // Start animations when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

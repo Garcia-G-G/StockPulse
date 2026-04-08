@@ -47,20 +47,22 @@ class StockPulseBot
     end
 
     while @running
-      response = conn.get("/bot#{@token}/getUpdates", { offset: offset, timeout: 30 })
-      updates = response.body["result"] || []
+      begin
+        response = conn.get("/bot#{@token}/getUpdates", { offset: offset, timeout: 30 })
+        updates = response.body["result"] || []
 
-      updates.each do |update|
-        offset = update["update_id"] + 1
-        handle_update(update)
+        updates.each do |update|
+          offset = update["update_id"] + 1
+          handle_update(update)
+        rescue StandardError => e
+          SystemLog.log(level: "error", component: "telegram_bot", message: "Update error: #{e.message}")
+        end
+      rescue Faraday::TimeoutError
+        next
       rescue StandardError => e
-        SystemLog.log(level: "error", component: "telegram_bot", message: "Update error: #{e.message}")
+        SystemLog.log(level: "error", component: "telegram_bot", message: "Poll error: #{e.message}")
+        sleep(5)
       end
-    rescue Faraday::TimeoutError
-      next
-    rescue StandardError => e
-      SystemLog.log(level: "error", component: "telegram_bot", message: "Poll error: #{e.message}")
-      sleep(5)
     end
   end
 
@@ -76,7 +78,7 @@ class StockPulseBot
     method = COMMANDS[command]
     if method
       send(method, chat_id, parts[1..])
-    elsif text.match?(/\A[A-Z]{1,5}\z/i)
+    elsif text.match?(/\A[A-Z]{1,10}\z/i) && !text.start_with?("/")
       cmd_quote(chat_id, [text.upcase])
     end
   end
@@ -211,7 +213,10 @@ class StockPulseBot
     user = find_user(chat_id)
     return reply(chat_id, "Use /start first.") unless user
 
-    alert_id = args.first.to_i
+    raw_id = args.first
+    return reply(chat_id, "Usage: /remove <alert_id>") unless raw_id.present? && raw_id.match?(/\A\d+\z/)
+
+    alert_id = raw_id.to_i
     alert = user.alerts.find(alert_id)
     alert.destroy!
     reply(chat_id, "Alert ##{alert_id} removed.")

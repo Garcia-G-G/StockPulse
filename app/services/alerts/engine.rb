@@ -21,7 +21,7 @@ module Alerts
     VOLUME_TYPES = %w[volume_spike].freeze
 
     def evaluate_all(symbol:, price_data:, technical_data: nil, news_data: nil, alert_types: nil)
-      alerts = Alert.active_alerts.for_symbol(symbol)
+      alerts = Alert.active_alerts.for_symbol(symbol).includes(:user)
       alerts = alerts.where(alert_type: alert_types) if alert_types
 
       alerts.filter_map do |alert|

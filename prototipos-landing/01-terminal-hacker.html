@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPulse - Real-Time Market Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0A0A0A;
+            color: #00FF41;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0A0A0A 0%, #1a0a1a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 65, 0.03) 0px,
+                rgba(0, 255, 65, 0.03) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        .terminal-container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            background: rgba(10, 10, 10, 0.9);
+            border: 2px solid #00FF41;
+            border-radius: 4px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.2), inset 0 0 20px rgba(0, 255, 65, 0.05);
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #00FF41;
+            color: #888;
+            font-size: 12px;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #00FF41;
+        }
+
+        .dot.red { background-color: #FF4444; }
+        .dot.yellow { background-color: #FFFF00; }
+
+        .boot-sequence {
+            min-height: 300px;
+        }
+
+        .boot-line {
+            margin: 8px 0;
+            opacity: 0;
+            animation: fadeInType 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeInType {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .boot-line.typed {
+            animation: fadeInType 0.5s ease-out;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 1.2em;
+            background-color: #00FF41;
+            margin-left: 4px;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .highlight {
+            color: #0CFF0C;
+        }
+
+        .ok-status {
+            color: #0CFF0C;
+        }
+
+        .boot-divider {
+            margin: 20px 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00FF41, transparent);
+        }
+
+        /* CTA Buttons */
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+
+        .btn-terminal {
+            padding: 12px 28px;
+            background-color: transparent;
+            border: 2px solid #00FF41;
+            color: #00FF41;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-terminal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background-color: #00FF41;
+            z-index: -1;
+            transition: left 0.3s ease;
+        }
+
+        .btn-terminal:hover {
+            color: #0A0A0A;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .btn-terminal:hover::before {
+            left: 0;
+        }
+
+        /* Ticker Section */
+        .ticker-section {
+            padding: 50px 20px;
+            background-color: #0A0A0A;
+            border-top: 2px solid #00FF41;
+            border-bottom: 2px solid #00FF41;
+            overflow: hidden;
+        }
+
+        .ticker-label {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .ticker-container {
+            position: relative;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .ticker-content {
+            display: flex;
+            gap: 40px;
+            animation: scroll-ticker 30s linear infinite;
+            white-space: nowrap;
+        }
+
+        .ticker-content:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes scroll-ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .ticker-item {
+            display: flex;
+            gap: 15px;
+            padding: 10px 20px;
+            border: 1px solid #00FF41;
+            border-radius: 2px;
+        }
+
+        .ticker-symbol {
+            color: #0CFF0C;
+            font-weight: 700;
+            min-width: 60px;
+        }
+
+        .ticker-price {
+            color: #00FF41;
+            font-weight: 700;
+        }
+
+        .ticker-change {
+            font-weight: 700;
+        }
+
+        .ticker-change.up {
+            color: #0CFF0C;
+        }
+
+        .ticker-change.down {
+            color: #FF4444;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 80px 20px;
+            background-color: #0A0A0A;
+        }
+
+        .section-title {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+
+        .feature-group {
+            margin-bottom: 50px;
+            padding: 20px;
+            border-left: 2px solid #00FF41;
+            background: rgba(0, 255, 65, 0.02);
+        }
+
+        .feature-command {
+            color: #0CFF0C;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .feature-item {
+            margin: 10px 0 10px 20px;
+            color: #00FF41;
+            font-size: 13px;
+        }
+
+        .feature-item::before {
+            content: '→ ';
+            color: #0CFF0C;
+            font-weight: 700;
+        }
+
+        /* Steps Section */
+        .steps-section {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #0A0A0A 0%, #1a0a1a 100%);
+        }
+
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .step-box {
+            background: rgba(10, 10, 10, 0.9);
+            border: 2px solid #00FF41;
+            padding: 25px;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .step-box:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+            border-color: #0CFF0C;
+        }
+
+        .step-number {
+            color: #0CFF0C;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .step-command {
+            color: #888;
+            margin-bottom: 15px;
+            word-break: break-all;
+            font-size: 12px;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 60px 20px;
+            background-color: #0A0A0A;
+            border-top: 2px solid #00FF41;
+            border-bottom: 2px solid #00FF41;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0CFF0C;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Signup Section */
+        .signup-section {
+            padding: 80px 20px;
+            background: linear-gradient(135deg, #0A0A0A 0%, #1a0a1a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .signup-form {
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid #00FF41;
+            border-radius: 4px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
+        }
+
+        .form-line {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .form-label {
+            color: #00FF41;
+            flex: 0 0 auto;
+        }
+
+        .form-input {
+            flex: 1;
+            background-color: transparent;
+            border: 1px solid #00FF41;
+            border-radius: 2px;
+            padding: 8px 12px;
+            color: #00FF41;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+            border-color: #0CFF0C;
+        }
+
+        .form-input::placeholder {
+            color: #888;
+        }
+
+        .btn-signup {
+            width: 100%;
+            padding: 12px;
+            background-color: transparent;
+            border: 2px solid #00FF41;
+            color: #00FF41;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-signup::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background-color: #00FF41;
+            z-index: -1;
+            transition: left 0.3s ease;
+        }
+
+        .btn-signup:hover {
+            color: #0A0A0A;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .btn-signup:hover::before {
+            left: 0;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #0A0A0A;
+            border-top: 1px solid #00FF41;
+            padding: 40px 20px;
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .footer-link {
+            color: #00FF41;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: #0CFF0C;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .terminal-container {
+                padding: 20px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .btn-terminal {
+                width: 100%;
+            }
+
+            .stat-number {
+                font-size: 24px;
+            }
+
+            .stats-container {
+                gap: 20px;
+            }
+
+            .step-container {
+                grid-template-columns: 1fr;
+            }
+
+            .signup-form {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <span>StockPulse Terminal v3.0.1</span>
+                <div class="terminal-dots">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot" style="background-color: #0CFF0C;"></div>
+                </div>
+            </div>
+
+            <div class="boot-sequence" id="bootSequence">
+                <!-- Boot lines will be injected here by JavaScript -->
+            </div>
+
+            <div class="cta-buttons">
+                <button class="btn-terminal">[ START TRACKING ]</button>
+                <button class="btn-terminal">[ VIEW DEMO ]</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ticker Section -->
+    <section class="ticker-section">
+        <div class="ticker-label">$ Live Market Feed</div>
+        <div class="ticker-container">
+            <div class="ticker-content">
+                <div class="ticker-item">
+                    <span class="ticker-symbol">AAPL</span>
+                    <span class="ticker-price">$234.52</span>
+                    <span class="ticker-change up">▲ +2.34%</span>
+                </div>
+                <div class="ticker-item">
+                    <span class="ticker-symbol">NVDA</span>
+                    <span class="ticker-price">$892.34</span>
+                    <span class="ticker-change down">▼ -1.23%</span>
+                </div>
+                <div class="ticker-item">
+                    <span class="ticker-symbol">MSFT</span>
+                    <span class="ticker-price">$456.78</span>
+                    <span class="ticker-change up">▲ +1.89%</span>
+                </div>
+                <div class="ticker-item">
+                    <span class="ticker-symbol">TSLA</span>
+                    <span class="ticker-price">$178.45</span>
+                    <span class="ticker-change up">▲ +3.12%</span>
+                </div>
+                <div class="ticker-item">
+                    <span class="ticker-symbol">AMZN</span>
+                    <span class="ticker-price">$198.23</span>
+                    <span class="ticker-change down">▼ -0.87%</span>
+                </div>
+                <!-- Duplicate for seamless loop -->
+                <div class="ticker-item">
+                    <span class="ticker-symbol">AAPL</span>
+                    <span class="ticker-price">$234.52</span>
+                    <span class="ticker-change up">▲ +2.34%</span>
+                </div>
+                <div class="ticker-item">
+                    <span class="ticker-symbol">NVDA</span>
+                    <span class="ticker-price">$892.34</span>
+                    <span class="ticker-change down">▼ -1.23%</span>
+                </div>
+                <div class="ticker-item">
+                    <span class="ticker-symbol">MSFT</span>
+                    <span class="ticker-price">$456.78</span>
+                    <span class="ticker-change up">▲ +1.89%</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <h2 class="section-title">$ Features</h2>
+
+        <div class="feature-group">
+            <div class="feature-command">$ stockpulse --alerts</div>
+            <div class="feature-item">Real-time price alerts via Telegram, WhatsApp & Email</div>
+            <div class="feature-item">RSI, MACD, Volume spike detection</div>
+            <div class="feature-item">Configurable thresholds per symbol</div>
+        </div>
+
+        <div class="feature-group">
+            <div class="feature-command">$ stockpulse --analyze AAPL</div>
+            <div class="feature-item">AI-powered analysis using Gemini 2.5 Flash</div>
+            <div class="feature-item">Technical indicators + news sentiment</div>
+            <div class="feature-item">Daily market briefings at 9:00 AM</div>
+        </div>
+
+        <div class="feature-group">
+            <div class="feature-command">$ stockpulse --notify</div>
+            <div class="feature-item">Multi-channel: Telegram, WhatsApp, Email</div>
+            <div class="feature-item">Instant delivery (< 1 second latency)</div>
+            <div class="feature-item">Quiet hours & smart batching</div>
+        </div>
+    </section>
+
+    <!-- Steps Section -->
+    <section class="steps-section">
+        <h2 class="section-title">$ Getting Started</h2>
+        <div class="step-container">
+            <div class="step-box">
+                <div class="step-number">Step 1</div>
+                <div class="step-command">$ stockpulse signup --email you@email.com</div>
+                <div style="color: #888; font-size: 12px;">Create your account with a single command</div>
+            </div>
+            <div class="step-box">
+                <div class="step-number">Step 2</div>
+                <div class="step-command">$ stockpulse watch --add AAPL NVDA TSLA</div>
+                <div style="color: #888; font-size: 12px;">Add symbols to your watchlist instantly</div>
+            </div>
+            <div class="step-box">
+                <div class="step-number">Step 3</div>
+                <div class="step-command">$ stockpulse alert --price AAPL > 250</div>
+                <div style="color: #888; font-size: 12px;">Set intelligent alerts and get notified</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-number" data-target="7432">0</div>
+                <div class="stat-label">Stocks Tracked</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="12891">0</div>
+                <div class="stat-label">Alerts Sent</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="0.3">0</div>
+                <div class="stat-label">Avg Latency (s)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="99.9">0</div>
+                <div class="stat-label">Uptime %</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Signup Section -->
+    <section class="signup-section">
+        <div class="signup-form">
+            <div style="color: #888; font-size: 12px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">$ Create Account</div>
+            <form id="signupForm">
+                <div class="form-line">
+                    <span class="form-label">> Email:</span>
+                    <input type="email" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div class="form-line">
+                    <span class="form-label">> Password:</span>
+                    <input type="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-signup">[ CREATE ACCOUNT ]</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-item">StockPulse v3.0.1</div>
+            <div class="footer-item">|</div>
+            <div class="footer-item">Built with Rails 8 + Gemini AI</div>
+            <div class="footer-item">|</div>
+            <div class="footer-item"><a href="#" class="footer-link">github.com/stockpulse</a></div>
+        </div>
+    </footer>
+
+    <script>
+        // Boot Sequence Animation
+        const bootLines = [
+            "> Initializing StockPulse v3.0.1...",
+            "> Connecting to market feeds... <span class=\"ok-status\">[OK]</span>",
+            "> Loading AI models (Gemini 2.5 Flash)... <span class=\"ok-status\">[OK]</span>",
+            "> System ready. 10 symbols monitored.",
+            "> ",
+            "> <span class=\"highlight\">Welcome to StockPulse_</span>",
+            "> <span class=\"highlight\">Real-time market intelligence at your fingertips.</span>",
+            "> "
+        ];
+
+        function typeBootSequence() {
+            const bootSequence = document.getElementById('bootSequence');
+            bootSequence.innerHTML = '';
+
+            let delay = 0;
+            bootLines.forEach((line, index) => {
+                setTimeout(() => {
+                    const lineEl = document.createElement('div');
+                    lineEl.className = 'boot-line';
+                    lineEl.innerHTML = line;
+                    bootSequence.appendChild(lineEl);
+
+                    if (index === bootLines.length - 1) {
+                        setTimeout(() => {
+                            const cursor = document.createElement('span');
+                            cursor.className = 'cursor';
+                            bootSequence.appendChild(cursor);
+                        }, 100);
+                    }
+                }, delay);
+                delay += 200;
+            });
+        }
+
+        // Animate counter on scroll
+        function animateCounters() {
+            const counters = document.querySelectorAll('[data-target]');
+            const observerOptions = {
+                threshold: 0.5
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const target = entry.target;
+                        const targetValue = parseFloat(target.getAttribute('data-target'));
+                        const isFloat = targetValue % 1 !== 0;
+                        let currentValue = 0;
+                        const increment = targetValue / 50;
+
+                        const counter = setInterval(() => {
+                            currentValue += increment;
+                            if (currentValue >= targetValue) {
+                                currentValue = targetValue;
+                                clearInterval(counter);
+                            }
+                            target.textContent = isFloat ? currentValue.toFixed(1) : Math.floor(currentValue).toLocaleString();
+                        }, 30);
+
+                        observer.unobserve(target);
+                    }
+                });
+            }, observerOptions);
+
+            counters.forEach(counter => observer.observe(counter));
+        }
+
+        // Form submission
+        document.getElementById('signupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Welcome to StockPulse! Check your email to verify your account.');
+        });
+
+        // Button interactions
+        document.querySelectorAll('.btn-terminal').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (e.target.textContent.includes('START TRACKING')) {
+                    alert('Redirecting to dashboard...');
+                } else if (e.target.textContent.includes('DEMO')) {
+                    alert('Loading demo data...');
+                }
+            });
+        });
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            typeBootSequence();
+            animateCounters();
+        });
+    </script>
+</body>
+</html>

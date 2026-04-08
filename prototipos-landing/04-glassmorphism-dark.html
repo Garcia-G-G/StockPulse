@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPulse — Real-Time Stock Market Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FFFFFF;
+            --secondary: #A0A0B0;
+            --bg-dark: #0F1117;
+            --accent-blue: #3B82F6;
+            --accent-purple: #8B5CF6;
+            --accent-teal: #06B6D4;
+            --gain: #10B981;
+            --loss: #F43F5E;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--primary);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated gradient blobs */
+        .blob-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            top: -100px;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+            top: 30%;
+            right: -50px;
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            width: 450px;
+            height: 450px;
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-purple));
+            bottom: -100px;
+            left: 30%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(30px, -30px); }
+            50% { transform: translate(-20px, 20px); }
+            75% { transform: translate(40px, 10px); }
+        }
+
+        /* Glass card component */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+            position: relative;
+        }
+
+        .glass-card:hover {
+            transform: scale(1.02);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Containers */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 80px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .hero-text h1 {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text p {
+            font-size: 18px;
+            color: var(--secondary);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Hero dashboard card with 3D tilt */
+        .hero-card {
+            perspective: 1000px;
+            height: 400px;
+        }
+
+        .hero-card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+            transform-style: preserve-3d;
+        }
+
+        .hero-card:hover .hero-card-inner {
+            transform: rotateX(5deg) rotateY(-8deg);
+        }
+
+        .hero-card .glass-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px;
+        }
+
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+
+        .stock-item:last-child {
+            border-bottom: none;
+        }
+
+        .stock-symbol {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stock-price {
+            color: var(--secondary);
+        }
+
+        .stock-gain {
+            color: var(--gain);
+            font-weight: 500;
+        }
+
+        .stock-loss {
+            color: var(--loss);
+            font-weight: 500;
+        }
+
+        .sparkline {
+            width: 50px;
+            height: 20px;
+            background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+            border-radius: 4px;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Trusted By */
+        .trusted-by {
+            text-align: center;
+            padding: 60px 0;
+            font-size: 16px;
+            color: var(--secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 60px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .feature-card {
+            animation: fadeInUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .feature-card:nth-child(1) { animation-delay: 0.1s; }
+        .feature-card:nth-child(2) { animation-delay: 0.2s; }
+        .feature-card:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .feature-card p {
+            font-size: 15px;
+            color: var(--secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--gain);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        .typing-animation {
+            display: inline-block;
+            width: 2px;
+            height: 16px;
+            background: var(--accent-blue);
+            margin-left: 4px;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 49%, 100% { opacity: 1; }
+            50%, 99% { opacity: 0; }
+        }
+
+        /* Dashboard Preview Section */
+        .dashboard-preview {
+            padding: 120px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .preview-card {
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            padding: 50px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+        }
+
+        .preview-header {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--primary);
+        }
+
+        .preview-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 40px;
+        }
+
+        .chart-area {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mock-chart {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.2), transparent);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-teal));
+            opacity: 0.6;
+        }
+
+        .alert-feed {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--secondary);
+        }
+
+        .preview-caption {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 18px;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 120px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            display: flex;
+            flex-direction: column;
+            padding: 50px 40px;
+        }
+
+        .pricing-card.premium {
+            background: var(--glass-bg);
+            border: 2px solid;
+            border-image: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)) 1;
+            animation: borderGradientAnimation 3s ease-in-out infinite;
+        }
+
+        @keyframes borderGradientAnimation {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .pricing-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .pricing-features {
+            font-size: 14px;
+            color: var(--secondary);
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .pricing-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--accent-purple);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--accent-purple);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .pricing-button {
+            margin-top: auto;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 120px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cta-card {
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cta-input {
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--primary);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .cta-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .cta-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 60px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 120px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+        }
+
+        .footer-links a {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-blue);
+        }
+
+        /* Scroll animation helper */
+        .fade-in {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .hero-text h1 {
+                font-size: 36px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-content {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .blob {
+                width: 250px !important;
+                height: 250px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background blobs -->
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Track stocks. Get alerts. Stay ahead.</h1>
+                    <p>Real-time market monitoring powered by AI. Free forever.</p>
+                    <button class="cta-button">Get Started</button>
+                </div>
+
+                <div class="hero-card">
+                    <div class="hero-card-inner">
+                        <div class="glass-card">
+                            <div class="preview-header">Your Watchlist</div>
+                            <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-around;">
+                                <div class="stock-item">
+                                    <span class="stock-symbol">AAPL</span>
+                                    <span class="stock-price">$192.53</span>
+                                    <span class="stock-gain">+2.4%</span>
+                                    <div class="sparkline"></div>
+                                </div>
+                                <div class="stock-item">
+                                    <span class="stock-symbol">MSFT</span>
+                                    <span class="stock-price">$423.18</span>
+                                    <span class="stock-gain">+1.8%</span>
+                                    <div class="sparkline"></div>
+                                </div>
+                                <div class="stock-item">
+                                    <span class="stock-symbol">TSLA</span>
+                                    <span class="stock-price">$178.65</span>
+                                    <span class="stock-loss">-1.2%</span>
+                                    <div class="sparkline"></div>
+                                </div>
+                                <div class="stock-item">
+                                    <span class="stock-symbol">NVDA</span>
+                                    <span class="stock-price">$875.32</span>
+                                    <span class="stock-gain">+3.1%</span>
+                                    <div class="sparkline"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trusted By -->
+    <section class="trusted-by">
+        <div class="container">
+            Monitoring 7,000+ stocks across NYSE, NASDAQ, and global markets
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Powerful Features</h2>
+
+            <div class="features-grid">
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Sub-second alerts delivered to Telegram, WhatsApp, or Email the moment your conditions trigger.</p>
+                    <div class="sparkline"></div>
+                </div>
+
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>AI Powered</h3>
+                    <p>Gemini 2.5 Flash analyzes technicals, sentiment, and news to give you actionable insights.<span class="typing-animation"></span></p>
+                </div>
+
+                <div class="glass-card feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Always On</h3>
+                    <p><span class="pulse-dot"></span>24/7 monitoring with automatic failover. Your stocks are watched even when you sleep.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Preview -->
+    <section class="dashboard-preview">
+        <div class="container">
+            <div class="glass-card preview-card">
+                <div class="preview-header">Dashboard Preview</div>
+                <div class="preview-content">
+                    <div class="chart-area">
+                        <div class="mock-chart">
+                            <div class="chart-bar" style="left: 10%; width: 8%; height: 45%;"></div>
+                            <div class="chart-bar" style="left: 20%; width: 8%; height: 60%;"></div>
+                            <div class="chart-bar" style="left: 30%; width: 8%; height: 35%;"></div>
+                            <div class="chart-bar" style="left: 40%; width: 8%; height: 75%;"></div>
+                            <div class="chart-bar" style="left: 50%; width: 8%; height: 55%;"></div>
+                            <div class="chart-bar" style="left: 60%; width: 8%; height: 80%;"></div>
+                            <div class="chart-bar" style="left: 70%; width: 8%; height: 50%;"></div>
+                            <div class="chart-bar" style="left: 80%; width: 8%; height: 65%;"></div>
+                        </div>
+                    </div>
+                    <div class="alert-feed">
+                        <div class="alert-item">AAPL crossed above 192.00 MA</div>
+                        <div class="alert-item">MSFT volume spike detected</div>
+                        <div class="alert-item">TSLA RSI entered oversold zone</div>
+                        <div class="alert-item">News: Tech sector rally</div>
+                        <div class="alert-item">NVDA price target hit</div>
+                    </div>
+                </div>
+                <div class="preview-caption">Everything you need. Nothing you don't.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing">
+        <div class="container">
+            <h2 class="section-title">Simple Pricing</h2>
+
+            <div class="pricing-grid">
+                <div class="glass-card pricing-card">
+                    <div class="pricing-title">Free</div>
+                    <div class="pricing-features">
+                        10 stocks<br>
+                        5 alerts<br>
+                        All channels
+                    </div>
+                    <button class="cta-button pricing-button">Get Started</button>
+                </div>
+
+                <div class="glass-card pricing-card premium">
+                    <div class="pricing-badge">Coming Soon</div>
+                    <div class="pricing-title">Pro</div>
+                    <div class="pricing-features">
+                        Unlimited stocks<br>
+                        Unlimited alerts<br>
+                        Priority AI
+                    </div>
+                    <button class="cta-button pricing-button" style="opacity: 0.5; cursor: not-allowed;">Coming Soon</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container cta-container">
+            <h2 class="cta-title">Start tracking markets today</h2>
+
+            <div class="glass-card cta-card">
+                <input type="email" class="cta-input" placeholder="Email address" />
+                <input type="password" class="cta-input" placeholder="Create password" />
+                <button class="cta-button" style="width: 100%;">Create Account</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">StockPulse</div>
+                <div class="footer-links">
+                    <a href="#">Documentation</a>
+                    <a href="#">Status</a>
+                    <a href="#">GitHub</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Privacy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.animation = 'fadeInUp 0.8s ease forwards';
+                }
+            });
+        }, observerOptions);
+
+        // Observe feature cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Button interactions
+        document.querySelectorAll('.cta-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (this.textContent === 'Coming Soon') return;
+
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+            });
+        });
+
+        // Simple parallax effect
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const previewCard = document.querySelector('.preview-card');
+            if (previewCard) {
+                previewCard.style.transform = `translateY(${scrolled * 0.05}px)`;
+            }
+        });
+    </script>
+</body>
+</html>

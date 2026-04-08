@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPulse — Real-Time Market Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #000000 0%, #060610 100%);
+            color: #F5F5F7;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Particle Canvas Background */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            scroll-snap-type: y mandatory;
+            height: 100vh;
+            overflow-y: scroll;
+        }
+
+        /* Sections */
+        section {
+            scroll-snap-align: start;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== SCENE 1: HERO ===== */
+        #scene1 {
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 80px;
+            font-weight: 200;
+            letter-spacing: -2px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.5s forwards;
+            margin-bottom: 16px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: #86868B;
+            font-weight: 400;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 1.5s forwards;
+            margin-bottom: 60px;
+        }
+
+        .dashboard-card {
+            background: rgba(17, 17, 17, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 28px;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto 40px;
+            opacity: 0;
+            animation: slideUp 1s ease-out 2.5s forwards;
+            box-shadow: 0 0 60px rgba(59, 130, 246, 0.1);
+            will-change: transform;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-8px);
+            transition: transform 0.3s ease-out;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 60px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .chart-line {
+            stroke: url(#blueGradient);
+            stroke-width: 3;
+            fill: none;
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.3));
+        }
+
+        .ticker-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+
+        .ticker-row:first-child {
+            border-top: none;
+        }
+
+        .ticker-symbol {
+            font-weight: 600;
+            color: #F5F5F7;
+        }
+
+        .ticker-price {
+            color: #86868B;
+            margin: 0 12px;
+        }
+
+        .ticker-change {
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .ticker-change.up {
+            color: #10B981;
+        }
+
+        .ticker-change.down {
+            color: #EF4444;
+        }
+
+        .cta-button {
+            background: #3B82F6;
+            color: #F5F5F7;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 3.5s forwards;
+            transition: all 0.3s ease-out;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .cta-button:hover {
+            background: #2563EB;
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+            transform: scale(1.02);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.6;
+            animation: bounce 2s infinite;
+        }
+
+        .chevron {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #3B82F6;
+            border-top: none;
+            border-left: none;
+            transform: rotate(-45deg);
+        }
+
+        /* ===== SCENE 2: PROBLEM ===== */
+        #scene2 {
+            text-align: center;
+        }
+
+        .problem-text {
+            font-size: 36px;
+            font-weight: 200;
+            line-height: 1.4;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .problem-line {
+            opacity: 0;
+            margin: 32px 0;
+            animation: fadeIn 1.2s ease-out forwards;
+        }
+
+        .problem-line:nth-child(1) { animation-delay: 0.5s; }
+        .problem-line:nth-child(2) { animation-delay: 1s; }
+        .problem-line:nth-child(3) { animation-delay: 1.5s; }
+        .problem-line:nth-child(4) { animation-delay: 2s; }
+        .problem-line:nth-child(5) {
+            font-size: 48px;
+            color: #3B82F6;
+            animation-delay: 2.5s;
+            margin-top: 60px;
+        }
+
+        /* ===== SCENE 3: SOLUTION ===== */
+        #scene3 {
+            flex-direction: column;
+        }
+
+        .solution-title {
+            font-size: 48px;
+            font-weight: 200;
+            margin-bottom: 80px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.3s forwards;
+        }
+
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .notification-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 4px solid;
+            border-radius: 12px;
+            padding: 20px;
+            opacity: 0;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: all 0.3s ease-out;
+            will-change: transform;
+        }
+
+        .notification-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .notification-card:nth-child(1) {
+            border-left-color: #3B82F6;
+            animation: slideInLeft 0.8s ease-out 0.5s forwards;
+        }
+
+        .notification-card:nth-child(2) {
+            border-left-color: #10B981;
+            animation: slideInRight 0.8s ease-out 0.8s forwards;
+        }
+
+        .notification-card:nth-child(3) {
+            border-left-color: #8B5CF6;
+            animation: slideInLeft 0.8s ease-out 1.1s forwards;
+        }
+
+        /* ===== SCENE 4: AI POWER ===== */
+        #scene4 {
+            flex-direction: column;
+        }
+
+        .ai-title {
+            font-size: 48px;
+            font-weight: 200;
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.3s forwards;
+        }
+
+        .ai-card {
+            background: rgba(17, 17, 17, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            opacity: 0;
+            animation: slideUp 1s ease-out 0.5s forwards;
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #F59E0B;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
+        }
+
+        .ai-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #F5F5F7;
+            text-align: left;
+            min-height: 80px;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: #3B82F6;
+            margin-left: 4px;
+            animation: blink 0.7s infinite;
+        }
+
+        .ai-stats {
+            font-size: 14px;
+            color: #86868B;
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 20px;
+        }
+
+        /* ===== SCENE 5: SPEED ===== */
+        #scene5 {
+            flex-direction: column;
+        }
+
+        .speed-counter {
+            font-size: 120px;
+            font-weight: 200;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.3s forwards;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .speed-label {
+            font-size: 18px;
+            color: #86868B;
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.5s forwards;
+        }
+
+        .pipeline {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+            max-width: 600px;
+        }
+
+        .pipeline-step {
+            flex: 1;
+            min-width: 140px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #86868B;
+            text-align: center;
+            padding: 12px;
+            opacity: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pipeline-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #3B82F6, transparent);
+            opacity: 0.3;
+            animation: slideRight 3s ease-in-out infinite;
+        }
+
+        .pipeline-step:nth-child(1) { animation: fadeIn 0.8s ease-out 0.5s forwards; animation-delay: 0.5s; }
+        .pipeline-step:nth-child(2) { animation: fadeIn 0.8s ease-out 0.5s forwards; animation-delay: 1.1s; }
+        .pipeline-step:nth-child(3) { animation: fadeIn 0.8s ease-out 0.5s forwards; animation-delay: 1.7s; }
+        .pipeline-step:nth-child(4) { animation: fadeIn 0.8s ease-out 0.5s forwards; animation-delay: 2.3s; }
+
+        .pipeline-arrow {
+            color: #3B82F6;
+            font-size: 20px;
+            margin: 0 -8px;
+        }
+
+        .speed-stats {
+            font-size: 14px;
+            color: #86868B;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 1.5s forwards;
+        }
+
+        /* ===== SCENE 6: CTA ===== */
+        #scene6 {
+            flex-direction: column;
+        }
+
+        .cta-title {
+            font-size: 64px;
+            font-weight: 200;
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.3s forwards;
+        }
+
+        .signup-card {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            opacity: 0;
+            animation: slideUp 1s ease-out 0.5s forwards;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: #111;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            color: #F5F5F7;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            transition: all 0.3s ease-out;
+        }
+
+        .form-input::placeholder {
+            color: #86868B;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .submit-button {
+            width: 100%;
+            background: #3B82F6;
+            color: #F5F5F7;
+            border: none;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease-out;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+            margin-top: 8px;
+        }
+
+        .submit-button:hover {
+            background: #2563EB;
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .signup-footer {
+            text-align: center;
+            font-size: 14px;
+            color: #86868B;
+            margin-top: 20px;
+        }
+
+        .signup-link {
+            color: #3B82F6;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s ease-out;
+        }
+
+        .signup-link:hover {
+            color: #60A5FA;
+        }
+
+        /* ===== SCENE 7: FOOTER ===== */
+        #scene7 {
+            height: auto;
+            scroll-snap-align: none;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #F5F5F7;
+            margin-bottom: 12px;
+        }
+
+        .footer-subtitle {
+            font-size: 14px;
+            color: #86868B;
+            margin-bottom: 16px;
+        }
+
+        .footer-link {
+            color: #3B82F6;
+            text-decoration: none;
+            transition: color 0.3s ease-out;
+        }
+
+        .footer-link:hover {
+            color: #60A5FA;
+        }
+
+        .footer-copyright {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 20px;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(8px);
+            }
+        }
+
+        @keyframes blink {
+            0%, 49%, 100% {
+                opacity: 1;
+            }
+            50%, 99% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideRight {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 48px;
+            }
+
+            .hero-subtitle {
+                font-size: 16px;
+            }
+
+            .problem-text {
+                font-size: 24px;
+            }
+
+            .problem-line:nth-child(5) {
+                font-size: 32px;
+            }
+
+            .solution-title,
+            .ai-title {
+                font-size: 32px;
+            }
+
+            .cta-title {
+                font-size: 40px;
+            }
+
+            .speed-counter {
+                font-size: 72px;
+            }
+
+            .dashboard-card,
+            .ai-card {
+                max-width: 90%;
+            }
+
+            .pipeline {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .pipeline-arrow {
+                transform: rotate(90deg);
+                margin: -8px 0;
+            }
+
+            .ticker-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .ticker-change {
+                min-width: auto;
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 480px) {
+            section {
+                padding: 40px 16px;
+            }
+
+            .hero-title {
+                font-size: 36px;
+                letter-spacing: -1px;
+            }
+
+            .problem-text {
+                font-size: 20px;
+            }
+
+            .solution-title,
+            .ai-title {
+                font-size: 24px;
+                margin-bottom: 40px;
+            }
+
+            .cta-title {
+                font-size: 32px;
+                margin-bottom: 40px;
+            }
+
+            .speed-counter {
+                font-size: 56px;
+            }
+
+            .dashboard-card,
+            .ai-card {
+                padding: 20px;
+                max-width: 100%;
+            }
+
+            .cards-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+
+    <svg style="display: none;">
+        <defs>
+            <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <div class="container">
+        <!-- SCENE 1: HERO -->
+        <section id="scene1">
+            <h1 class="hero-title">StockPulse</h1>
+            <p class="hero-subtitle">Market intelligence. Delivered instantly.</p>
+
+            <div class="dashboard-card">
+                <div class="chart-container">
+                    <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="none">
+                        <path class="chart-line" d="M 0 50 Q 50 30 100 35 T 200 20 T 300 40 T 400 25" stroke-dasharray="400" stroke-dashoffset="400" style="animation: drawLine 2s ease-out 3s forwards;"></path>
+                    </svg>
+                </div>
+
+                <div class="ticker-row">
+                    <span class="ticker-symbol">AAPL</span>
+                    <span class="ticker-price">$234.52</span>
+                    <span class="ticker-change up">▲ +2.3%</span>
+                </div>
+                <div class="ticker-row">
+                    <span class="ticker-symbol">NVDA</span>
+                    <span class="ticker-price">$892.00</span>
+                    <span class="ticker-change down">▼ -1.2%</span>
+                </div>
+                <div class="ticker-row">
+                    <span class="ticker-symbol">MSFT</span>
+                    <span class="ticker-price">$456.18</span>
+                    <span class="ticker-change up">▲ +1.8%</span>
+                </div>
+            </div>
+
+            <button class="cta-button">Get Started — Free</button>
+
+            <div class="scroll-indicator">
+                <div class="chevron"></div>
+            </div>
+        </section>
+
+        <!-- SCENE 2: PROBLEM -->
+        <section id="scene2">
+            <div class="problem-text">
+                <div class="problem-line">You check your phone.</div>
+                <div class="problem-line">Again.</div>
+                <div class="problem-line">Did NVDA break $900?</div>
+                <div class="problem-line">Is your stop-loss still holding?</div>
+                <div class="problem-line">There's a better way.</div>
+            </div>
+        </section>
+
+        <!-- SCENE 3: SOLUTION -->
+        <section id="scene3">
+            <h2 class="solution-title">What if the market came to you?</h2>
+            <div class="cards-container">
+                <div class="notification-card">
+                    🔔 AAPL crossed $235 (+2.4%) — Milestone hit on your watchlist
+                </div>
+                <div class="notification-card">
+                    📊 Daily Briefing: Your portfolio up 1.8% today. TSLA leading gains.
+                </div>
+                <div class="notification-card">
+                    ⚡ NVDA Volume spike: 3x average. Market momentum building.
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 4: AI POWER -->
+        <section id="scene4">
+            <h2 class="ai-title">Powered by intelligence.</h2>
+
+            <div class="ai-card">
+                <div class="ai-badge">Gemini 2.5 Flash</div>
+                <div class="ai-text" id="aiText">
+                    <span id="aiContent"></span><span class="typing-cursor" id="typingCursor"></span>
+                </div>
+                <div class="ai-stats">
+                    50+ technical indicators • Updated hourly • News sentiment analysis
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 5: SPEED -->
+        <section id="scene5">
+            <div class="speed-counter" id="speedCounter">0.0s</div>
+            <p class="speed-label">Average alert delivery time</p>
+
+            <div class="pipeline">
+                <div class="pipeline-step">Market Event</div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">Detection</div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">Analysis</div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">Your Phone</div>
+            </div>
+
+            <p class="speed-stats">99.9% uptime • 24/7 monitoring • 10 symbols free</p>
+        </section>
+
+        <!-- SCENE 6: CTA -->
+        <section id="scene6">
+            <h2 class="cta-title">Your turn.</h2>
+            <div class="signup-card">
+                <div class="form-group">
+                    <input type="email" class="form-input" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-input" placeholder="Password">
+                </div>
+                <button class="submit-button">Start Tracking</button>
+                <div class="signup-footer">
+                    Free forever. No credit card.
+                    <br>
+                    <span style="margin-top: 8px; display: block;">
+                        Already have an account? <span class="signup-link">Sign in</span>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 7: FOOTER -->
+        <section id="scene7">
+            <div class="footer-content">
+                <div class="footer-title">StockPulse</div>
+                <div class="footer-subtitle">Built with Ruby on Rails 8 + Gemini AI</div>
+                <div>
+                    <a href="#" class="footer-link">GitHub</a>
+                </div>
+                <div class="footer-copyright">© 2026 StockPulse. All rights reserved.</div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ===== PARTICLE ANIMATION =====
+        class ParticleSystem {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.orbs = [];
+                this.scrollOffset = 0;
+
+                this.resize();
+                this.initParticles();
+                this.initOrbs();
+                this.animate();
+
+                window.addEventListener('resize', () => this.resize());
+                window.addEventListener('scroll', () => this.updateScroll());
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            updateScroll() {
+                this.scrollOffset = window.scrollY * 0.1;
+            }
+
+            initParticles() {
+                const count = window.innerWidth < 768 ? 40 : 80;
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        size: Math.random() * 2 + 0.5,
+                        opacity: Math.random() * 0.5 + 0.2
+                    });
+                }
+            }
+
+            initOrbs() {
+                this.orbs = [
+                    {
+                        x: this.canvas.width * 0.2,
+                        y: this.canvas.height * 0.3,
+                        size: 280,
+                        color: '#3B82F6',
+                        opacity: 0.1,
+                        angle: 0,
+                        speed: 0.0005,
+                        radius: 150
+                    },
+                    {
+                        x: this.canvas.width * 0.8,
+                        y: this.canvas.height * 0.7,
+                        size: 320,
+                        color: '#8B5CF6',
+                        opacity: 0.08,
+                        angle: Math.PI,
+                        speed: 0.00045,
+                        radius: 180
+                    },
+                    {
+                        x: this.canvas.width * 0.5,
+                        y: this.canvas.height * 0.5,
+                        size: 240,
+                        color: '#06B6D4',
+                        opacity: 0.06,
+                        angle: Math.PI / 2,
+                        speed: 0.0004,
+                        radius: 160
+                    }
+                ];
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw orbs
+                this.orbs.forEach(orb => {
+                    orb.angle += orb.speed;
+                    orb.x = this.canvas.width * 0.5 + Math.cos(orb.angle) * orb.radius + this.scrollOffset * 0.3;
+                    orb.y = this.canvas.height * 0.5 + Math.sin(orb.angle) * orb.radius + this.scrollOffset * 0.2;
+
+                    const gradient = this.ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.size);
+                    gradient.addColorStop(0, `${orb.color}${Math.round(orb.opacity * 255).toString(16).padStart(2, '0')}`);
+                    gradient.addColorStop(1, `${orb.color}00`);
+
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.filter = 'blur(100px)';
+                    this.ctx.fillRect(orb.x - orb.size, orb.y - orb.size, orb.size * 2, orb.size * 2);
+                    this.ctx.filter = 'none';
+                });
+
+                // Update and draw particles
+                this.particles.forEach((p, i) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0) p.x = this.canvas.width;
+                    if (p.x > this.canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = this.canvas.height;
+                    if (p.y > this.canvas.height) p.y = 0;
+
+                    this.ctx.fillStyle = `rgba(59, 130, 246, ${p.opacity})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y + this.scrollOffset * 0.1, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+
+                // Draw particle connections
+                for (let i = 0; i < this.particles.length; i++) {
+                    let connections = 0;
+                    for (let j = i + 1; j < this.particles.length && connections < 3; j++) {
+                        const dx = this.particles[i].x - this.particles[j].x;
+                        const dy = this.particles[i].y - this.particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 120) {
+                            this.ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 * (1 - distance / 120)})`;
+                            this.ctx.lineWidth = 1;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                            this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                            this.ctx.stroke();
+                            connections++;
+                        }
+                    }
+                }
+
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize particle system
+        const particleCanvas = document.getElementById('particleCanvas');
+        new ParticleSystem(particleCanvas);
+
+        // ===== SVG LINE ANIMATION =====
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes drawLine {
+                from {
+                    stroke-dashoffset: 400;
+                }
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // ===== TYPING ANIMATION =====
+        const aiContent = "AAPL: Bullish reversal confirmed. RSI recovering from oversold at 32 to current 58. MACD crossover on daily chart. Price target: $245. Confidence: High.";
+        let isTyping = false;
+
+        function typeText() {
+            if (isTyping) return;
+            isTyping = true;
+
+            const element = document.getElementById('aiContent');
+            const cursor = document.getElementById('typingCursor');
+            element.textContent = '';
+            let index = 0;
+
+            const typeInterval = setInterval(() => {
+                if (index < aiContent.length) {
+                    element.textContent += aiContent[index];
+                    index++;
+                } else {
+                    clearInterval(typeInterval);
+                    cursor.style.display = 'none';
+                    isTyping = false;
+                }
+            }, 25);
+        }
+
+        // ===== INTERSECTION OBSERVER FOR ANIMATIONS =====
+        const observerOptions = {
+            threshold: 0.5
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const section = entry.target;
+
+                    if (section.id === 'scene4' && !section.dataset.animated) {
+                        section.dataset.animated = 'true';
+                        setTimeout(typeText, 500);
+                    }
+
+                    if (section.id === 'scene5' && !section.dataset.animated) {
+                        section.dataset.animated = 'true';
+                        animateCounter();
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section').forEach(section => observer.observe(section));
+
+        // ===== COUNTER ANIMATION =====
+        function animateCounter() {
+            const counter = document.getElementById('speedCounter');
+            let current = 0;
+            const target = 0.3;
+            const duration = 2000;
+            const start = Date.now();
+
+            const animate = () => {
+                const elapsed = Date.now() - start;
+                const progress = Math.min(elapsed / duration, 1);
+                current = target * progress;
+
+                counter.textContent = current.toFixed(1) + 's';
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+
+            requestAnimationFrame(animate);
+        }
+
+        // ===== SMOOTH SCROLL SNAP =====
+        const container = document.querySelector('.container');
+        let lastScrollTime = 0;
+        const scrollThrottle = 16;
+
+        container.addEventListener('scroll', () => {
+            const now = Date.now();
+            if (now - lastScrollTime < scrollThrottle) return;
+            lastScrollTime = now;
+        });
+    </script>
+</body>
+</html>

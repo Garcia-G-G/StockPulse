@@ -29,7 +29,7 @@ html{scroll-behavior:smooth}
 body{
   font-family:'Inter',system-ui,sans-serif;
   background:var(--bg-deep);
-  background-image:radial-gradient(ellipse 80% 50% at 50% 20%,rgba(59,130,246,0.04) 0%,transparent 60%);
+  background-image:radial-gradient(ellipse 80% 50% at 50% 15%,rgba(59,130,246,0.07) 0%,transparent 50%);
   color:var(--text-primary);
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
@@ -40,7 +40,7 @@ body{
 .aurora-band{
   position:absolute;width:120%;left:-10%;
   /* Use height instead of box-shadow for glow effect — no repaint cost */
-  height:80px;opacity:0.06;
+  height:120px;opacity:0.12;
   will-change:transform;
 }
 .aurora-band-1{
@@ -71,12 +71,14 @@ body{
   50%{transform:translateY(-20px) scaleY(1.2)}
 }
 
-/* Orbs — large soft gradients, NO filter:blur (expensive). The radial-gradient fades to transparent naturally. */
-.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;opacity:0.25;will-change:transform}
-.orb-1{width:800px;height:800px;top:-20%;left:-15%;background:radial-gradient(circle,rgba(59,130,246,0.08) 0%,transparent 60%);animation:orb-move-1 30s ease-in-out infinite}
-.orb-3{width:700px;height:700px;top:30%;right:-5%;background:radial-gradient(circle,rgba(99,102,241,0.05) 0%,transparent 55%);animation:orb-move-2 25s ease-in-out infinite}
-@keyframes orb-move-1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,50px)}}
-@keyframes orb-move-2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
+/* Orbs — large soft gradients, NO filter:blur. Radial-gradient fades naturally. */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;opacity:0.4;will-change:transform}
+.orb-1{width:900px;height:900px;top:-25%;left:-20%;background:radial-gradient(circle,rgba(59,130,246,0.1) 0%,transparent 55%);animation:orb-move-1 30s ease-in-out infinite}
+.orb-2{width:600px;height:600px;bottom:-10%;right:10%;background:radial-gradient(circle,rgba(16,185,129,0.06) 0%,transparent 55%);animation:orb-move-3 22s ease-in-out infinite}
+.orb-3{width:800px;height:800px;top:25%;right:-10%;background:radial-gradient(circle,rgba(99,102,241,0.07) 0%,transparent 50%);animation:orb-move-2 25s ease-in-out infinite}
+@keyframes orb-move-1{0%,100%{transform:translate(0,0)}50%{transform:translate(50px,60px)}}
+@keyframes orb-move-2{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,-50px)}}
+@keyframes orb-move-3{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,40px)}}
 
 /* === CSS-ONLY FEATURE VISUALS === */
 /* Replaces canvas animations — runs on compositor, no JS, no repaints */
@@ -234,10 +236,11 @@ section{position:relative;z-index:1}
   z-index:-1;
 }
 .preview-frame{
-  background:rgba(15,21,40,0.7);
+  background:var(--bg-base);
   border:1px solid var(--border-light);
+  border-top:1px solid rgba(59,130,246,0.2);
   border-radius:16px;overflow:hidden;
-  box-shadow:0 24px 80px rgba(0,0,0,0.5),0 0 1px rgba(59,130,246,0.3);
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
 }
 .preview-topbar{
   display:flex;align-items:center;gap:8px;padding:11px 16px;
@@ -332,10 +335,11 @@ section{position:relative;z-index:1}
 }
 .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .feature-card{
-  background:var(--bg-card);
+  background:var(--bg-card-solid);
   border:1px solid var(--border);
+  border-top:1px solid rgba(59,130,246,0.15);
   border-radius:16px;padding:0;overflow:hidden;
-  transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
+  transition:all 0.4s ease;
   position:relative;
 }
 .feature-card:hover{
@@ -494,10 +498,11 @@ section{position:relative;z-index:1}
 .auth-card{
   width:100%;max-width:400px;
   background:var(--bg-surface);
-  border:1px solid var(--border);
+  border:1px solid var(--border-light);
+  border-top:2px solid var(--accent);
   border-radius:12px;
-  padding:32px;
-  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  padding:36px 32px;
+  box-shadow:0 12px 48px rgba(0,0,0,0.5);
 }
 .auth-logo{
   display:flex;align-items:center;gap:8px;justify-content:center;

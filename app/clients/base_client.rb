@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "concurrent"
+
 class BaseClient
   class RateLimitExceeded < StandardError; end
   class CircuitOpenError < StandardError; end

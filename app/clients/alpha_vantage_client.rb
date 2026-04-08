@@ -45,6 +45,9 @@ class AlphaVantageClient < BaseClient
   end
 
   def api_key
-    ENV.fetch("ALPHA_VANTAGE_API_KEY", "")
+    key = ENV.fetch("ALPHA_VANTAGE_API_KEY", "")
+    raise "ALPHA_VANTAGE_API_KEY not configured" if key.blank?
+
+    key
   end
 end

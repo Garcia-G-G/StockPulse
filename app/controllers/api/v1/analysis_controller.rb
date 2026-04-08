@@ -81,6 +81,8 @@ module Api
           cached = redis.get("indicators:#{symbol}")
           cached ? JSON.parse(cached) : nil
         end
+      rescue JSON::ParserError
+        nil
       end
 
       def cache_indicators(symbol, data)
