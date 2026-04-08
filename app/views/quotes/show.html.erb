@@ -1,0 +1,58 @@
+<%# Same nav as landing %>
+<nav class="landing-nav" data-controller="landing--nav-scroll">
+  <a href="/" class="logo">
+    <svg viewBox="0 0 22 22" fill="none"><rect x="1.5" y="1.5" width="19" height="19" rx="5" stroke="#3B82F6" stroke-width="1.5"/><polyline points="6,15 9,9 13,12 17,6" stroke="#3B82F6" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    StockPulse
+  </a>
+  <div class="nav-r">
+    <a href="/">← Back</a>
+    <a href="<%= new_user_registration_path %>" class="nav-btn">Sign up free</a>
+  </div>
+</nav>
+
+<div style="padding:120px 40px 80px;max-width:800px;margin:0 auto">
+  <div style="margin-bottom:8px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted,#4A5370)">
+    <%= @profile&.dig("name") || @symbol %> · <%= @symbol %><% if @profile&.dig("exchange") %> · <%= @profile["exchange"] %><% end %>
+  </div>
+
+  <div style="font-size:42px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-2px">
+    $<%= number_with_delimiter(@quote["c"].to_f.round(2)) %>
+  </div>
+
+  <% change = @quote["d"].to_f; change_pct = @quote["dp"].to_f; up = change >= 0 %>
+  <div style="font-size:14px;margin-top:4px;color:<%= up ? '#10B981' : '#F43F5E' %>">
+    <%= up ? "↑" : "↓" %> $<%= change.abs.round(2) %> (<%= up ? "+" : "" %><%= change_pct.round(2) %>%) today
+  </div>
+
+  <div style="display:flex;gap:24px;margin-top:20px;font-size:12px;color:var(--muted,#4A5370)">
+    <div>Open <span style="color:var(--text2,#7E89A7)">$<%= @quote["o"].to_f.round(2) %></span></div>
+    <div>High <span style="color:var(--text2,#7E89A7)">$<%= @quote["h"].to_f.round(2) %></span></div>
+    <div>Low <span style="color:var(--text2,#7E89A7)">$<%= @quote["l"].to_f.round(2) %></span></div>
+    <div>Prev Close <span style="color:var(--text2,#7E89A7)">$<%= @quote["pc"].to_f.round(2) %></span></div>
+  </div>
+
+  <% if @profile&.dig("finnhubIndustry") %>
+    <div style="margin-top:24px;padding:20px;background:var(--card,#111832);border:1px solid var(--border,rgba(255,255,255,0.06));border-radius:10px">
+      <div style="font-size:12px;color:var(--muted,#4A5370);margin-bottom:8px">About</div>
+      <div style="font-size:14px;line-height:1.6;color:var(--text2,#7E89A7)">
+        <strong style="color:var(--text,#E8ECF4)"><%= @profile["name"] %></strong> is listed on <%= @profile["exchange"] %> in the <%= @profile["finnhubIndustry"] %> industry.
+        <% if @profile["marketCapitalization"].to_f > 0 %>
+          Market cap: $<%= number_with_delimiter((@profile["marketCapitalization"].to_f * 1_000_000).round(0)) %>.
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div style="margin-top:32px;padding:24px;background:var(--card,#111832);border:1px solid rgba(59,130,246,0.15);border-radius:10px;text-align:center">
+    <div style="font-size:16px;font-weight:600;margin-bottom:6px">Get alerts for <%= @symbol %></div>
+    <div style="font-size:13px;color:var(--text2,#7E89A7);margin-bottom:16px">Set price targets, technical conditions, or news alerts — delivered to Telegram, email, or WhatsApp.</div>
+    <a href="<%= new_user_registration_path %>" class="nav-btn" style="padding:10px 28px;font-size:14px;border-radius:8px;display:inline-block">Create free account</a>
+  </div>
+</div>
+
+<footer class="landing-footer">
+  <div class="footer-inner">
+    <span>© 2026 StockPulse</span>
+    <div><a href="#">Privacy</a><a href="#">Terms</a><a href="#">GitHub</a></div>
+  </div>
+</footer>
