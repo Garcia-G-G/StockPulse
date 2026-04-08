@@ -38,35 +38,12 @@ body{
 .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .aurora canvas{width:100%;height:100%}
 
-/* Floating orbs */
-.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(120px);opacity:0.5}
-.orb-1{width:600px;height:600px;top:-15%;left:-10%;background:radial-gradient(circle,rgba(59,130,246,0.12),transparent 70%);animation:orb-float-1 20s ease-in-out infinite}
-.orb-2{width:500px;height:500px;bottom:-20%;right:-10%;background:radial-gradient(circle,rgba(16,185,129,0.08),transparent 70%);animation:orb-float-2 25s ease-in-out infinite}
-.orb-3{width:450px;height:450px;top:35%;left:55%;background:radial-gradient(circle,rgba(99,102,241,0.07),transparent 70%);animation:orb-float-3 18s ease-in-out infinite}
-.orb-4{width:350px;height:350px;top:60%;left:10%;background:radial-gradient(circle,rgba(6,182,212,0.05),transparent 70%);animation:orb-float-4 22s ease-in-out infinite}
-@keyframes orb-float-1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(60px,80px) scale(1.1)}66%{transform:translate(-30px,40px) scale(0.95)}}
-@keyframes orb-float-2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-80px,-60px) scale(1.15)}}
-@keyframes orb-float-3{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-45%,-55%) scale(1.08)}}
-@keyframes orb-float-4{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-50px)}}
+/* Floating orbs — just 2, very subtle, no animation to save GPU */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(140px);opacity:0.35}
+.orb-1{width:500px;height:500px;top:-10%;left:-5%;background:radial-gradient(circle,rgba(59,130,246,0.08),transparent 70%)}
+.orb-3{width:400px;height:400px;top:40%;right:10%;background:radial-gradient(circle,rgba(99,102,241,0.05),transparent 70%)}
 
-/* Particle canvas */
-#particleCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
-
-/* Subtle grid */
-.grid-overlay{
-  position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(59,130,246,0.015) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(59,130,246,0.015) 1px,transparent 1px);
-  background-size:60px 60px;
-  mask-image:radial-gradient(ellipse 70% 50% at 50% 40%,rgba(0,0,0,0.6) 0%,transparent 100%);
-}
-
-/* Noise texture */
-.noise{
-  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.03;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
+/* Removed: particle canvas, grid overlay, noise texture — too many layers, hurt performance */
 
 /* === NAVIGATION === */
 .landing-nav{
@@ -172,13 +149,7 @@ section{position:relative;z-index:1}
   box-shadow:0 2px 24px rgba(59,130,246,0.25),inset 0 1px 0 rgba(255,255,255,0.1);
   text-decoration:none;display:inline-block;
 }
-.btn-primary::after{
-  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-  background:radial-gradient(circle,rgba(255,255,255,0.15),transparent 60%);
-  opacity:0;transition:opacity 0.4s;
-}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(59,130,246,0.4),inset 0 1px 0 rgba(255,255,255,0.15)}
-.btn-primary:hover::after{opacity:1}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(59,130,246,0.35)}
 .btn-secondary{
   padding:15px 36px;border-radius:12px;font-size:15px;font-weight:500;
   background:var(--glass);color:var(--text-secondary);
@@ -209,9 +180,7 @@ section{position:relative;z-index:1}
   border-radius:16px;overflow:hidden;
   backdrop-filter:blur(20px);
   box-shadow:0 24px 80px rgba(0,0,0,0.5),0 0 1px rgba(59,130,246,0.3);
-  animation:float-subtle 6s ease-in-out infinite;
 }
-@keyframes float-subtle{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .preview-topbar{
   display:flex;align-items:center;gap:8px;padding:11px 16px;
   border-bottom:1px solid var(--border);
@@ -314,17 +283,11 @@ section{position:relative;z-index:1}
   transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
   position:relative;
 }
-.feature-card::before{
-  content:'';position:absolute;inset:0;border-radius:16px;
-  background:linear-gradient(180deg,rgba(59,130,246,0.04),transparent 50%);
-  opacity:0;transition:opacity 0.5s;pointer-events:none;z-index:1;
-}
 .feature-card:hover{
-  border-color:rgba(59,130,246,0.15);
-  transform:translateY(-6px);
-  box-shadow:0 16px 50px rgba(0,0,0,0.3),0 0 0 1px rgba(59,130,246,0.1);
+  border-color:rgba(255,255,255,0.1);
+  transform:translateY(-3px);
+  box-shadow:0 12px 40px rgba(0,0,0,0.25);
 }
-.feature-card:hover::before{opacity:1}
 .feature-visual{
   width:100%;height:140px;position:relative;overflow:hidden;
   border-bottom:1px solid var(--border);
@@ -332,15 +295,7 @@ section{position:relative;z-index:1}
 }
 .feature-visual canvas{width:100%;height:100%}
 .fc-body{padding:24px}
-.fc-icon{
-  width:38px;height:38px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  margin-bottom:16px;font-size:17px;
-  backdrop-filter:blur(8px);
-}
-.fc-icon.blue{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.1)}
-.fc-icon.green{background:var(--gain-dim);border:1px solid rgba(16,185,129,0.1)}
-.fc-icon.purple{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.1)}
+/* Feature icons removed — cleaner without emoji badges */
 .fc-title{font-size:16px;font-weight:620;margin-bottom:8px;letter-spacing:-0.3px}
 .fc-desc{font-size:13.5px;color:var(--text-secondary);line-height:1.6;font-weight:370}
 
@@ -367,13 +322,7 @@ section{position:relative;z-index:1}
   transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
   backdrop-filter:blur(12px);
 }
-.step-badge::before{
-  content:'';position:absolute;inset:-1px;border-radius:18px;
-  background:linear-gradient(135deg,rgba(59,130,246,0.3),transparent 50%,transparent 50%,rgba(99,102,241,0.2));
-  opacity:0;transition:opacity 0.4s;z-index:-1;
-}
-.step:hover .step-badge{transform:translateY(-4px);box-shadow:0 12px 30px rgba(59,130,246,0.15)}
-.step:hover .step-badge::before{opacity:1}
+.step:hover .step-badge{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
 .step-title{font-size:15px;font-weight:620;margin-bottom:8px;letter-spacing:-0.2px}
 .step-desc{font-size:13px;color:var(--text-secondary);line-height:1.55;max-width:190px;margin:0 auto;font-weight:370}
 

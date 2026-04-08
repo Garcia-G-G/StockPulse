@@ -1,5 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Sparse floating dots. No connections (they're barely visible and expensive).
+// Throttled to ~15fps — these move so slowly it doesn't matter.
 export default class extends Controller {
   connect() {
     this.canvas = this.element
@@ -8,7 +10,8 @@ export default class extends Controller {
     this.resize()
     this.resizeHandler = () => this.resize()
     window.addEventListener("resize", this.resizeHandler)
-    this.draw()
+    this.lastFrame = 0
+    this.draw(0)
   }
 
   disconnect() {
@@ -20,39 +23,38 @@ export default class extends Controller {
     this.w = this.canvas.width = window.innerWidth
     this.h = this.canvas.height = window.innerHeight
     this.particles = []
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 25; i++) {
       this.particles.push({
-        x: Math.random() * this.w, y: Math.random() * this.h,
-        r: Math.random() * 1.5 + 0.5, vx: (Math.random() - 0.5) * 0.15,
-        vy: (Math.random() - 0.5) * 0.15, o: Math.random() * 0.3 + 0.05
+        x: Math.random() * this.w,
+        y: Math.random() * this.h,
+        r: Math.random() * 1.2 + 0.4,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: (Math.random() - 0.5) * 0.08,
+        o: Math.random() * 0.15 + 0.03
       })
     }
   }
 
-  draw() {
+  draw(ts) {
+    if (ts - this.lastFrame < 66) { // ~15fps
+      this.raf = requestAnimationFrame((t) => this.draw(t))
+      return
+    }
+    this.lastFrame = ts
+
     this.ctx.clearRect(0, 0, this.w, this.h)
-    this.particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy
-      if (p.x < 0) p.x = this.w; if (p.x > this.w) p.x = 0
-      if (p.y < 0) p.y = this.h; if (p.y > this.h) p.y = 0
+    for (const p of this.particles) {
+      p.x += p.vx
+      p.y += p.vy
+      if (p.x < 0) p.x = this.w
+      if (p.x > this.w) p.x = 0
+      if (p.y < 0) p.y = this.h
+      if (p.y > this.h) p.y = 0
       this.ctx.beginPath()
       this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
       this.ctx.fillStyle = `rgba(59,130,246,${p.o})`
       this.ctx.fill()
-    })
-    for (let i = 0; i < this.particles.length; i++) {
-      for (let j = i + 1; j < this.particles.length; j++) {
-        const d = Math.hypot(this.particles[i].x - this.particles[j].x, this.particles[i].y - this.particles[j].y)
-        if (d < 120) {
-          this.ctx.beginPath()
-          this.ctx.strokeStyle = `rgba(59,130,246,${0.04 * (1 - d / 120)})`
-          this.ctx.lineWidth = 0.5
-          this.ctx.moveTo(this.particles[i].x, this.particles[i].y)
-          this.ctx.lineTo(this.particles[j].x, this.particles[j].y)
-          this.ctx.stroke()
-        }
-      }
     }
-    this.raf = requestAnimationFrame(() => this.draw())
+    this.raf = requestAnimationFrame((t) => this.draw(t))
   }
 }
