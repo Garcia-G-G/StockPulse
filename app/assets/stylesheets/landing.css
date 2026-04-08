@@ -37,27 +37,24 @@ body{
 /* === BACKGROUND — Pure CSS, runs on GPU compositor thread, zero JS === */
 .bg-aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .aurora-band{
-  position:absolute;width:120%;height:1px;left:-10%;
-  opacity:0.04;
-  /* Only animates transform — compositor thread only, cannot lag */
+  position:absolute;width:120%;left:-10%;
+  /* Use height instead of box-shadow for glow effect — no repaint cost */
+  height:40px;opacity:0.03;
   will-change:transform;
 }
 .aurora-band-1{
   top:30%;
-  background:linear-gradient(90deg,transparent 0%,rgba(59,130,246,0.6) 30%,rgba(99,102,241,0.4) 70%,transparent 100%);
-  box-shadow:0 0 80px 40px rgba(59,130,246,0.03);
+  background:linear-gradient(90deg,transparent 0%,rgba(59,130,246,0.5) 30%,rgba(99,102,241,0.3) 70%,transparent 100%);
   animation:aurora-drift-1 25s ease-in-out infinite;
 }
 .aurora-band-2{
   top:50%;
-  background:linear-gradient(90deg,transparent 0%,rgba(99,102,241,0.4) 40%,rgba(6,182,212,0.3) 60%,transparent 100%);
-  box-shadow:0 0 60px 30px rgba(99,102,241,0.02);
+  background:linear-gradient(90deg,transparent 0%,rgba(99,102,241,0.3) 40%,rgba(6,182,212,0.2) 60%,transparent 100%);
   animation:aurora-drift-2 30s ease-in-out infinite;
 }
 .aurora-band-3{
   top:70%;
-  background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.3) 50%,transparent 100%);
-  box-shadow:0 0 60px 30px rgba(16,185,129,0.015);
+  background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.25) 50%,transparent 100%);
   animation:aurora-drift-3 20s ease-in-out infinite;
 }
 @keyframes aurora-drift-1{
@@ -73,10 +70,10 @@ body{
   50%{transform:translateY(-20px) scaleY(1.2)}
 }
 
-/* Orbs — CSS only, use transform for animation (compositor thread) */
-.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(120px);opacity:0.3;will-change:transform}
-.orb-1{width:500px;height:500px;top:-10%;left:-5%;background:radial-gradient(circle,rgba(59,130,246,0.1),transparent 70%);animation:orb-move-1 30s ease-in-out infinite}
-.orb-3{width:400px;height:400px;top:40%;right:10%;background:radial-gradient(circle,rgba(99,102,241,0.06),transparent 70%);animation:orb-move-2 25s ease-in-out infinite}
+/* Orbs — large soft gradients, NO filter:blur (expensive). The radial-gradient fades to transparent naturally. */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;opacity:0.25;will-change:transform}
+.orb-1{width:800px;height:800px;top:-20%;left:-15%;background:radial-gradient(circle,rgba(59,130,246,0.08) 0%,transparent 60%);animation:orb-move-1 30s ease-in-out infinite}
+.orb-3{width:700px;height:700px;top:30%;right:-5%;background:radial-gradient(circle,rgba(99,102,241,0.05) 0%,transparent 55%);animation:orb-move-2 25s ease-in-out infinite}
 @keyframes orb-move-1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,50px)}}
 @keyframes orb-move-2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-40px)}}
 
@@ -129,8 +126,7 @@ body{
   position:fixed;top:0;left:0;right:0;z-index:100;
   padding:0 48px;height:64px;
   display:flex;align-items:center;justify-content:space-between;
-  background:rgba(5,8,16,0.5);
-  backdrop-filter:blur(24px) saturate(1.5);
+  background:rgba(5,8,16,0.92);
   border-bottom:1px solid var(--border);
   transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
 }
@@ -161,8 +157,7 @@ body{
 /* === TICKER BAR === */
 .ticker-bar{
   position:fixed;top:64px;left:0;right:0;z-index:99;
-  height:36px;background:rgba(10,15,28,0.7);
-  backdrop-filter:blur(16px);
+  height:36px;background:rgba(10,15,28,0.95);
   border-bottom:1px solid var(--border);
   overflow:hidden;display:flex;align-items:center;
 }
@@ -193,7 +188,6 @@ section{position:relative;z-index:1}
   padding:6px 18px 6px 12px;border-radius:24px;margin-bottom:32px;
   background:var(--glass);
   border:1px solid var(--border-light);
-  backdrop-filter:blur(12px);
   font-size:12.5px;color:var(--text-secondary);font-weight:450;
   transition:all 0.3s;
 }
@@ -241,15 +235,14 @@ section{position:relative;z-index:1}
 }
 /* No gradient border glow — just a subtle shadow beneath */
 .hero-preview::after{
-  content:'';position:absolute;bottom:-30px;left:15%;right:15%;height:60px;
-  background:radial-gradient(ellipse,rgba(0,0,0,0.3),transparent);
-  filter:blur(20px);z-index:-1;
+  content:'';position:absolute;bottom:-40px;left:10%;right:10%;height:80px;
+  background:radial-gradient(ellipse,rgba(0,0,0,0.2),transparent);
+  z-index:-1;
 }
 .preview-frame{
   background:rgba(15,21,40,0.7);
   border:1px solid var(--border-light);
   border-radius:16px;overflow:hidden;
-  backdrop-filter:blur(20px);
   box-shadow:0 24px 80px rgba(0,0,0,0.5),0 0 1px rgba(59,130,246,0.3);
 }
 .preview-topbar{
@@ -348,7 +341,6 @@ section{position:relative;z-index:1}
   background:var(--bg-card);
   border:1px solid var(--border);
   border-radius:16px;padding:0;overflow:hidden;
-  backdrop-filter:blur(20px);
   transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
   position:relative;
 }
@@ -389,7 +381,6 @@ section{position:relative;z-index:1}
   background:var(--bg-card);border:1px solid var(--border-light);
   color:var(--accent);position:relative;z-index:1;
   transition:all 0.5s cubic-bezier(0.22,1,0.36,1);
-  backdrop-filter:blur(12px);
 }
 .step:hover .step-badge{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
 .step-title{font-size:15px;font-weight:620;margin-bottom:8px;letter-spacing:-0.2px}
@@ -401,7 +392,7 @@ section{position:relative;z-index:1}
 .ai-terminal{
   background:var(--bg-card);border:1px solid var(--border-light);
   border-radius:16px;overflow:hidden;
-  backdrop-filter:blur(12px);position:relative;
+  position:relative;
   box-shadow:0 16px 48px rgba(0,0,0,0.3);
 }
 .ai-bar{
@@ -438,8 +429,7 @@ section{position:relative;z-index:1}
 .notif-card{
   display:flex;gap:14px;align-items:flex-start;
   padding:18px 22px;border-radius:14px;
-  background:var(--bg-card);border:1px solid var(--border);
-  backdrop-filter:blur(20px);
+  background:var(--bg-card-solid);border:1px solid var(--border);
   transform:translateX(50px);opacity:0;
   transition:all 0.7s cubic-bezier(0.22,1,0.36,1);
 }
@@ -474,7 +464,7 @@ section{position:relative;z-index:1}
   flex:1;padding:15px 20px;border-radius:12px;
   background:var(--bg-card);border:1px solid var(--border-light);
   color:var(--text-primary);font-size:14px;font-family:'Inter',sans-serif;
-  outline:none;transition:all 0.3s;backdrop-filter:blur(8px);
+  outline:none;transition:all 0.3s;
 }
 .cta-input::placeholder{color:var(--text-muted)}
 .cta-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
@@ -511,7 +501,6 @@ section{position:relative;z-index:1}
   width:100%;max-width:420px;
   background:var(--bg-card);border:1px solid var(--border-light);
   border-radius:16px;padding:36px;
-  backdrop-filter:blur(20px);
   box-shadow:0 20px 60px rgba(0,0,0,0.35);position:relative;
 }
 .auth-card::before{
@@ -574,7 +563,6 @@ section{position:relative;z-index:1}
   width:100%;max-width:640px;
   background:var(--bg-card);border:1px solid var(--border-light);
   border-radius:16px;padding:40px;
-  backdrop-filter:blur(20px);
   box-shadow:0 20px 60px rgba(0,0,0,0.35);position:relative;
 }
 .onboarding-card::before{
@@ -653,7 +641,6 @@ section{position:relative;z-index:1}
 .profile-section{
   background:var(--bg-card);border:1px solid var(--border);
   border-radius:12px;padding:24px;margin-bottom:20px;
-  backdrop-filter:blur(20px);
 }
 .profile-section-title{font-size:14px;font-weight:600;margin-bottom:16px;letter-spacing:-0.2px}
 .profile-field{margin-bottom:16px}
