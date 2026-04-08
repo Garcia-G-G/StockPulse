@@ -5,8 +5,9 @@ export default class extends Controller {
 
   connect() {
     this.data = []
-    for (let i = 0; i < 90; i++) this.data.push(22000 + Math.random() * 4000 + i * 30 + Math.sin(i * 0.2) * 500)
-    this.draw()
+    for (let i = 0; i < 90; i++) this.data.push(44000 + Math.random() * 4000 + i * 50 + Math.sin(i * 0.2) * 800)
+    // Ensure canvas has layout dimensions before first draw
+    requestAnimationFrame(() => this.draw())
     this.interval = setInterval(() => this.update(), 1800)
   }
 
@@ -16,6 +17,7 @@ export default class extends Controller {
 
   draw() {
     const c = this.canvasTarget
+    if (!c || c.offsetWidth === 0 || c.offsetHeight === 0) return
     const ctx = c.getContext("2d")
     const dpr = devicePixelRatio || 1
     c.width = c.offsetWidth * dpr
