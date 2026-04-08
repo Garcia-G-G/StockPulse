@@ -5,12 +5,19 @@ export default class extends Controller {
 
   connect() {
     this.stocks = [
-      { s: "AAPL", n: "Apple", p: 198.45, c: 1.23, ico: "🍎" },
-      { s: "NVDA", n: "NVIDIA", p: 924.56, c: 2.34, ico: "🟢" },
-      { s: "TSLA", n: "Tesla", p: 178.30, c: -1.12, ico: "⚡" },
-      { s: "MSFT", n: "Microsoft", p: 445.12, c: -0.45, ico: "🔷" },
-      { s: "GOOGL", n: "Alphabet", p: 178.90, c: 0.87, ico: "🔍" }
+      { s: "AAPL", n: "Apple", p: 258.90, c: 1.61 },
+      { s: "NVDA", n: "NVIDIA", p: 181.77, c: 2.06 },
+      { s: "TSLA", n: "Tesla", p: 341.98, c: -1.35 },
+      { s: "MSFT", n: "Microsoft", p: 371.98, c: -0.08 },
+      { s: "GOOGL", n: "Alphabet", p: 317.52, c: 3.95 }
     ]
+    this.colors = {
+      AAPL: "59,130,246",
+      NVDA: "16,185,129",
+      TSLA: "244,63,94",
+      MSFT: "99,102,241",
+      GOOGL: "245,158,11"
+    }
     this.sparkData = this.stocks.map(() => {
       const d = []; for (let i = 0; i < 24; i++) d.push(40 + Math.random() * 40); return d
     })
@@ -31,7 +38,8 @@ export default class extends Controller {
   render() {
     this.listTarget.innerHTML = this.stocks.map((st, i) => {
       const up = st.c >= 0
-      return `<div class="watchlist-row"><div class="wl-icon">${st.ico}</div><div class="wl-info"><div class="wl-sym">${st.s}</div><div class="wl-name">${st.n}</div></div><div class="wl-spark"><canvas id="spk${i}" width="112" height="48"></canvas></div><div class="wl-right"><div class="wl-price">${st.p.toFixed(2)}</div><div class="wl-chg ${up ? "up" : "dn"}">${up ? "↑" : "↓"} ${Math.abs(st.c).toFixed(2)}%</div></div></div>`
+      const clr = this.colors[st.s] || "59,130,246"
+      return `<div class="watchlist-row"><div class="wl-icon" style="background:rgba(${clr},0.1);color:rgba(${clr},0.8);font-size:11px;font-weight:700;letter-spacing:0">${st.s[0]}</div><div class="wl-info"><div class="wl-sym">${st.s}</div><div class="wl-name">${st.n}</div></div><div class="wl-spark"><canvas id="spk${i}" width="112" height="48"></canvas></div><div class="wl-right"><div class="wl-price">${st.p.toFixed(2)}</div><div class="wl-chg ${up ? "up" : "dn"}">${up ? "↑" : "↓"} ${Math.abs(st.c).toFixed(2)}%</div></div></div>`
     }).join("")
     this.stocks.forEach((_, i) => this.drawSparkline(i))
   }
