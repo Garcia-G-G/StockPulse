@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Manages the hero product card — loads real quote data, updates on search/tab clicks
 export default class extends Controller {
-  static targets = ["symbol", "price", "change", "open", "high", "low", "vol", "exchange", "alertLabel", "chart"]
+  static targets = ["symbol", "price", "change", "alertLabel", "chart"]
 
   connect() {
     this.currentSymbol = "AAPL"

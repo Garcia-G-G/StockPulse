@@ -2,34 +2,42 @@
 
 module Streaming
   class TradeAggregator
-    def aggregate(trades)
-      return nil if trades.nil? || trades.empty?
+    attr_reader :trades
 
-      total_volume = 0
-      total_value = 0.0
-      high = -Float::INFINITY
-      low = Float::INFINITY
+    def initialize
+      @trades = Concurrent::Array.new
+      @mutex = Mutex.new
+    end
 
-      trades.each do |trade|
-        price = (trade["p"] || trade[:price]).to_f
-        volume = (trade["v"] || trade[:volume] || 1).to_i
+    def add_trade(symbol:, price:, volume:, timestamp:)
+      @trades << { symbol: symbol, price: price.to_f, volume: volume.to_f, timestamp: timestamp }
+    end
 
-        total_volume += volume
-        total_value += price * volume
-        high = price if price > high
-        low = price if price < low
-      end
+    def aggregate(symbol)
+      symbol_trades = @trades.select { |t| t[:symbol] == symbol }
+      return nil if symbol_trades.empty?
 
-      last_trade = trades.last
+      prices = symbol_trades.map { |t| t[:price] }
+      volumes = symbol_trades.map { |t| t[:volume] }
+      total_volume = volumes.sum
+
       {
-        price: (last_trade["p"] || last_trade[:price]).to_f,
-        vwap: total_volume.positive? ? (total_value / total_volume).round(4) : 0,
+        symbol: symbol,
+        vwap: total_volume > 0 ? symbol_trades.sum { |t| t[:price] * t[:volume] } / total_volume : prices.last,
+        high: prices.max,
+        low: prices.min,
+        last: prices.last,
         volume: total_volume,
-        high: high,
-        low: low,
-        trade_count: trades.size,
-        timestamp: Time.current.to_i
+        trade_count: symbol_trades.size
       }
+    end
+
+    def flush(symbol)
+      @trades.reject! { |t| t[:symbol] == symbol }
+    end
+
+    def flush_all
+      @trades.clear
     end
   end
 end

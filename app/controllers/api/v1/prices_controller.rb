@@ -3,7 +3,7 @@
 module Api
   module V1
     class PricesController < BaseController
-      skip_before_action :authenticate_api!, raise: false
+      skip_before_action :authenticate_user_or_api!, raise: false
 
       def current
         symbols = params[:symbols]&.split(",")&.map(&:strip)&.map(&:upcase)&.reject(&:blank?)

@@ -34,6 +34,7 @@ gem "faraday-retry"
 gem "faraday-multipart"
 gem "typhoeus"
 gem "faye-websocket"
+gem "eventmachine"
 
 # Real-time
 gem "solid_cable"
