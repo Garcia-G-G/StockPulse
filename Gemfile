@@ -15,7 +15,7 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 gem "propshaft"
 
 # Background Jobs
-gem "sidekiq", "~> 8.0"
+gem "sidekiq", "~> 8.1"
 gem "sidekiq-cron", "~> 2.3"
 gem "sidekiq-unique-jobs", "~> 8.0"
 gem "sidekiq-throttled"
