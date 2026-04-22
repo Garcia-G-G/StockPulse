@@ -1,4 +1,4 @@
-<div class="app">
+<div class="app" data-controller="dashboard-prices">
   <!-- Sidebar -->
   <nav class="sb">
     <div class="sb-logo">S</div>
@@ -59,13 +59,14 @@
         <div class="ct">Watchlist</div>
         <% if @watchlist_items.any? %>
           <table class="wl">
-            <thead><tr><th>Symbol</th><th>Exchange</th><th>Price</th><th>Status</th></tr></thead>
+            <thead><tr><th>Symbol</th><th>Exchange</th><th>Price</th><th>Change</th><th>Status</th></tr></thead>
             <tbody>
               <% @watchlist_items.each do |item| %>
                 <tr>
                   <td><div class="sym"><%= item.symbol %></div><div class="sym-name"><%= item.name || item.symbol %></div></td>
                   <td><span class="ex"><%= item.exchange || "—" %></span></td>
-                  <td class="pr" data-symbol="<%= item.symbol %>">—</td>
+                  <td class="pr" data-symbol="<%= item.symbol %>" data-field="price">—</td>
+                  <td class="ch" data-symbol="<%= item.symbol %>" data-field="change">—</td>
                   <td style="text-align:right"><span class="gain" style="font-size:11px">● Active</span></td>
                 </tr>
               <% end %>

@@ -23,26 +23,18 @@ class OnboardingController < ApplicationController
       end
       render json: { success: true, next_step: 3 }
     when 3
-      symbol = params.dig(:data, :symbol)
-      raw_condition = params.dig(:data, :condition)
-      if symbol.present? && raw_condition.is_a?(ActionController::Parameters)
-        direction = raw_condition[:direction]
-        price = raw_condition[:price].to_f
-        if %w[above below].include?(direction) && price > 0
-          alert_type = direction == "above" ? "price_above" : "price_below"
-          current_user.alerts.create(
-            symbol: symbol.upcase,
-            alert_type: alert_type,
-            condition: { direction: direction, price: price },
-            channels: { email: true }
-          )
-        end
-      end
+      create_onboarding_alert(
+        symbol: params.dig(:data, :symbol),
+        alert_type: params.dig(:data, :alert_type),
+        raw_condition: params.dig(:data, :condition)
+      )
       render json: { success: true, next_step: 4 }
     when 4
       updates = {}
+      email = params.dig(:data, :email)
       telegram = params.dig(:data, :telegram_chat_id)
       whatsapp = params.dig(:data, :whatsapp_number)
+      updates[:email] = email if email.present? && email != current_user.email
       updates[:telegram_chat_id] = telegram if telegram.present?
       updates[:whatsapp_number] = whatsapp if whatsapp.present?
       if updates.any?
@@ -57,6 +49,38 @@ class OnboardingController < ApplicationController
       render json: { success: true, redirect_to: authenticated_root_path }
     else
       render json: { error: "Invalid step" }, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def create_onboarding_alert(symbol:, alert_type:, raw_condition:)
+    return if symbol.blank? || !raw_condition.is_a?(ActionController::Parameters)
+
+    case alert_type.to_s
+    when "price_change_pct"
+      value = raw_condition[:value].to_f
+      direction = raw_condition[:direction].to_s
+      return unless value.positive? && %w[up down any].include?(direction)
+
+      current_user.alerts.create(
+        symbol: symbol.upcase,
+        alert_type: "price_change_pct",
+        condition: { "value" => value, "direction" => direction },
+        channels: ["email"]
+      )
+    else
+      # Legacy price_above/below path: direction + price
+      direction = raw_condition[:direction].to_s
+      price = raw_condition[:price].to_f
+      return unless %w[above below].include?(direction) && price.positive?
+
+      current_user.alerts.create(
+        symbol: symbol.upcase,
+        alert_type: direction == "above" ? "price_above" : "price_below",
+        condition: { "value" => price },
+        channels: ["email"]
+      )
     end
   end
 end

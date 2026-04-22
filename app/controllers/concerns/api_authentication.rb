@@ -13,7 +13,7 @@ module ApiAuthentication
     return if user_signed_in?
     return if authenticate_via_api_token!
     return if authenticate_via_telegram_chat_id!
-    render_unauthorized
+    respond_with_unauthorized
   end
 
   def authenticate_via_api_token!
@@ -36,8 +36,20 @@ module ApiAuthentication
     @current_user.present?
   end
 
-  def render_unauthorized
-    render json: { error: "Unauthorized", message: "Missing or invalid credentials" }, status: :unauthorized
+  def respond_with_unauthorized
+    if api_request?
+      render json: { error: "Unauthorized", message: "Valid session, API token, or Telegram header required" },
+             status: :unauthorized
+    else
+      redirect_to new_user_session_path, alert: "Please sign in to continue."
+    end
+  end
+
+  def api_request?
+    request.format.json? ||
+      request.headers["X-API-Token"].present? ||
+      request.headers["X-Telegram-Chat-Id"].present? ||
+      request.path.start_with?("/api/")
   end
 
   def current_user

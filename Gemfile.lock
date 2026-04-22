@@ -580,6 +580,7 @@ DEPENDENCIES
   debug
   devise (~> 4.9)
   dotenv-rails
+  eventmachine
   factory_bot_rails
   faker
   faraday (~> 2.14)

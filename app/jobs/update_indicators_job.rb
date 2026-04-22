@@ -60,13 +60,14 @@ class UpdateIndicatorsJob < ApplicationJob
 
     results.each do |result|
       alert = result[:alert]
+      channels = alert.resolved_notification_channels
       AlertHistory.create!(
         alert: alert, user: alert.user, symbol: symbol,
         alert_type: alert.alert_type, message: result[:message],
-        data: result[:data], channels_notified: alert.user.notification_channels,
+        data: result[:data], channels_notified: channels,
         triggered_at: Time.current
       )
-      SendNotificationJob.perform_later(user_id: alert.user_id, message: result[:message])
+      SendNotificationJob.perform_later(user_id: alert.user_id, message: result[:message], channels: channels)
     end
   end
 end

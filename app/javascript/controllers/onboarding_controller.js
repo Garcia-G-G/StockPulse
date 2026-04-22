@@ -1,16 +1,38 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["step", "progressBar", "stepNum", "selectedStocks", "alertSymbol", "alertPrice", "telegramInput", "whatsappInput"]
+  static targets = ["step", "progressBar", "stepNum", "selectedStocks", "alertSymbol", "alertMode", "pctPanel", "pricePanel", "pctValue", "alertPrice", "emailInput", "telegramInput", "whatsappInput", "step4Error"]
 
   connect() {
     this.currentStep = 1
     this.selectedStocks = []
+    this.wireAlertMode()
   }
 
-  nextStep(e) {
+  wireAlertMode() {
+    this.element.querySelectorAll('.alert-mode .mode-btn').forEach(btn => {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.mode
+        this.element.querySelectorAll('.alert-mode .mode-btn').forEach(b => b.classList.remove("selected"))
+        btn.classList.add("selected")
+        if (this.hasPctPanelTarget) this.pctPanelTarget.style.display = mode === "pct" ? "block" : "none"
+        if (this.hasPricePanelTarget) this.pricePanelTarget.style.display = mode === "price" ? "block" : "none"
+      })
+    })
+  }
+
+  selectPct(e) {
     e.preventDefault()
-    this.saveStep(this.currentStep)
+    const pct = e.currentTarget.dataset.pct
+    if (this.hasPctValueTarget) this.pctValueTarget.value = pct
+    this.element.querySelectorAll(".pct-pill").forEach(p => p.classList.remove("selected"))
+    e.currentTarget.classList.add("selected")
+  }
+
+  async nextStep(e) {
+    e.preventDefault()
+    const ok = await this.saveStep(this.currentStep)
+    if (!ok) return
     if (this.currentStep < 5) this.showStep(this.currentStep + 1)
   }
 
@@ -73,25 +95,63 @@ export default class extends Controller {
     this.renderSelected()
   }
 
-  saveStep(step) {
+  async saveStep(step) {
     const data = this.getStepData(step)
     const token = document.querySelector('meta[name="csrf-token"]')?.content
-    fetch(`/onboarding/step/${step}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-CSRF-Token": token },
-      body: JSON.stringify({ data })
-    }).catch(console.error)
+    try {
+      const resp = await fetch(`/onboarding/step/${step}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": token, "Accept": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ data })
+      })
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}))
+        this.showStepError(step, body.errors || [body.error || "Something went wrong."])
+        return false
+      }
+      this.showStepError(step, null)
+      return true
+    } catch (err) {
+      console.error(err)
+      this.showStepError(step, ["Network error. Please try again."])
+      return false
+    }
+  }
+
+  showStepError(step, messages) {
+    if (step === 4 && this.hasStep4ErrorTarget) {
+      if (messages) {
+        this.step4ErrorTarget.textContent = Array.isArray(messages) ? messages.join(" ") : String(messages)
+        this.step4ErrorTarget.style.display = "block"
+      } else {
+        this.step4ErrorTarget.textContent = ""
+        this.step4ErrorTarget.style.display = "none"
+      }
+    }
   }
 
   getStepData(step) {
     switch (step) {
       case 2: return { symbols: this.selectedStocks }
       case 3: {
-        const dir = document.querySelector('input[name="alert-direction"]:checked')?.value
-        const price = this.hasAlertPriceTarget ? this.alertPriceTarget.value : ""
-        return { symbol: this.selectedStocks[0], condition: { direction: dir, price } }
+        const mode = document.querySelector('input[name="alert-mode"]:checked')?.value || "pct"
+        if (mode === "pct") {
+          const direction = document.querySelector('input[name="pct-direction"]:checked')?.value || "any"
+          const value = this.hasPctValueTarget ? parseFloat(this.pctValueTarget.value || "0") : 0
+          return {
+            symbol: this.selectedStocks[0],
+            alert_type: "price_change_pct",
+            condition: { value, direction }
+          }
+        } else {
+          const dir = document.querySelector('input[name="alert-direction"]:checked')?.value
+          const price = this.hasAlertPriceTarget ? this.alertPriceTarget.value : ""
+          return { symbol: this.selectedStocks[0], condition: { direction: dir, price } }
+        }
       }
       case 4: return {
+        email: this.hasEmailInputTarget ? this.emailInputTarget.value : "",
         telegram_chat_id: this.hasTelegramInputTarget ? this.telegramInputTarget.value : "",
         whatsapp_number: this.hasWhatsappInputTarget ? this.whatsappInputTarget.value : ""
       }

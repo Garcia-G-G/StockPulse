@@ -1,18 +1,5 @@
 require "sidekiq/web"
 
-if Rails.env.production? && (ENV["SIDEKIQ_USER"].blank? || ENV["SIDEKIQ_PASSWORD"].blank?)
-  Rails.logger.warn("SIDEKIQ_USER and SIDEKIQ_PASSWORD must be set in production!")
-end
-
-Sidekiq::Web.use(Rack::Auth::Basic) do |user, password|
-  expected_user = ENV.fetch("SIDEKIQ_USER") { Rails.env.production? ? nil : "admin" }
-  expected_pass = ENV.fetch("SIDEKIQ_PASSWORD") { Rails.env.production? ? nil : "password" }
-  next false unless expected_user && expected_pass
-
-  ActiveSupport::SecurityUtils.secure_compare(user, expected_user) &&
-    ActiveSupport::SecurityUtils.secure_compare(password, expected_pass)
-end
-
 Rails.application.routes.draw do
   # Devise authentication
   devise_for :users, path: "", path_names: {
@@ -45,8 +32,13 @@ Rails.application.routes.draw do
   get "/profile", to: "profile#show"
   patch "/profile", to: "profile#update"
 
-  # Sidekiq Web UI
-  mount Sidekiq::Web => "/sidekiq"
+  # Alerts management page
+  get "/alerts", to: "alerts_page#index"
+
+  # Sidekiq Web UI — gated by Devise (any signed-in user). Tighten to admins later.
+  authenticate :user do
+    mount Sidekiq::Web => "/sidekiq"
+  end
 
   # ActionCable
   mount ActionCable.server => "/cable"
@@ -62,9 +54,12 @@ Rails.application.routes.draw do
         end
       end
 
-      resources :alerts, only: %i[index create update destroy] do
+      resources :alerts, only: %i[index show create update destroy] do
         collection do
           get :history
+        end
+        member do
+          patch :toggle
         end
       end
 

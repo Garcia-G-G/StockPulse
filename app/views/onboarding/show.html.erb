@@ -39,13 +39,36 @@
     <%# Step 3: Set Alert %>
     <div class="step-content" data-onboarding-target="step" data-step="3">
       <div class="step-title">Set your first alert</div>
-      <div class="step-subtitle">Get notified when a stock hits your target price.</div>
+      <div class="step-subtitle">Get notified when your stock moves. Pick a quick rule or set a custom target.</div>
       <div style="margin-bottom:14px;font-size:13px;color:var(--text-secondary)">Alert for: <strong data-onboarding-target="alertSymbol">—</strong></div>
-      <div class="alert-direction">
-        <label><input type="radio" name="alert-direction" value="above" checked><span>Price goes above</span></label>
-        <label><input type="radio" name="alert-direction" value="below"><span>Price goes below</span></label>
+
+      <div class="alert-mode" data-onboarding-target="alertMode">
+        <label class="mode-btn selected" data-mode="pct"><input type="radio" name="alert-mode" value="pct" checked>Percentage move</label>
+        <label class="mode-btn" data-mode="price"><input type="radio" name="alert-mode" value="price">Custom price target</label>
       </div>
-      <input type="number" class="onboarding-input" placeholder="Target price (e.g. 200.00)" data-onboarding-target="alertPrice" step="0.01">
+
+      <div class="alert-mode-panel" data-onboarding-target="pctPanel">
+        <div class="alert-direction">
+          <label><input type="radio" name="pct-direction" value="up" checked><span>🔺 Goes up</span></label>
+          <label><input type="radio" name="pct-direction" value="down"><span>🔻 Goes down</span></label>
+          <label><input type="radio" name="pct-direction" value="any"><span>↕️ Either way</span></label>
+        </div>
+        <input type="number" class="onboarding-input" placeholder="Percentage (e.g. 5)" data-onboarding-target="pctValue" step="0.1" min="0">
+        <div class="pct-pills">
+          <% [1, 2, 5, 10, 20].each do |p| %>
+            <button type="button" class="pct-pill" data-action="click->onboarding#selectPct" data-pct="<%= p %>"><%= p %>%</button>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="alert-mode-panel" data-onboarding-target="pricePanel" style="display:none">
+        <div class="alert-direction">
+          <label><input type="radio" name="alert-direction" value="above" checked><span>Price goes above</span></label>
+          <label><input type="radio" name="alert-direction" value="below"><span>Price goes below</span></label>
+        </div>
+        <input type="number" class="onboarding-input" placeholder="Target price (e.g. 200.00)" data-onboarding-target="alertPrice" step="0.01">
+      </div>
+
       <div class="onboarding-actions">
         <button class="btn-secondary" data-action="click->onboarding#prevStep">Back</button>
         <button class="btn-secondary" data-action="click->onboarding#skipStep">Skip</button>
@@ -56,22 +79,23 @@
     <%# Step 4: Notifications %>
     <div class="step-content" data-onboarding-target="step" data-step="4">
       <div class="step-title">Connect notifications</div>
-      <div class="step-subtitle">Choose how you want to receive alerts. All channels are optional.</div>
+      <div class="step-subtitle">Choose where to receive alerts. You can change these later in Settings.</div>
       <div class="notif-channel">
         <div class="channel-icon">✉️</div>
-        <div class="channel-info"><div class="channel-name">Email</div><div class="channel-desc"><%= current_user.email %></div></div>
-        <div class="channel-badge connected">Connected</div>
+        <div class="channel-info"><div class="channel-name">Email</div><div class="channel-desc">Alerts and daily briefings</div></div>
       </div>
+      <input type="email" class="onboarding-input" placeholder="you@example.com" data-onboarding-target="emailInput" value="<%= current_user.email %>">
       <div class="notif-channel">
         <div class="channel-icon">✈️</div>
-        <div class="channel-info"><div class="channel-name">Telegram</div><div class="channel-desc">Enter your Telegram chat ID</div></div>
+        <div class="channel-info"><div class="channel-name">Telegram</div><div class="channel-desc">Message @StockPulseBot for your chat ID</div></div>
       </div>
-      <input type="text" class="onboarding-input" placeholder="Telegram Chat ID (optional)" data-onboarding-target="telegramInput">
+      <input type="text" class="onboarding-input" placeholder="Telegram Chat ID (optional)" data-onboarding-target="telegramInput" value="<%= current_user.telegram_chat_id %>">
       <div class="notif-channel">
         <div class="channel-icon">💬</div>
-        <div class="channel-info"><div class="channel-name">WhatsApp</div><div class="channel-desc">Enter your phone number</div></div>
+        <div class="channel-info"><div class="channel-name">WhatsApp</div><div class="channel-desc">Phone number with country code</div></div>
       </div>
-      <input type="tel" class="onboarding-input" placeholder="+1234567890 (optional)" data-onboarding-target="whatsappInput">
+      <input type="tel" class="onboarding-input" placeholder="+15551234567 (optional)" data-onboarding-target="whatsappInput" value="<%= current_user.whatsapp_number %>">
+      <div class="onboarding-error" data-onboarding-target="step4Error" style="display:none;color:var(--loss);font-size:12px;margin-top:8px"></div>
       <div class="onboarding-actions">
         <button class="btn-secondary" data-action="click->onboarding#prevStep">Back</button>
         <button class="btn-primary" data-action="click->onboarding#nextStep">Continue</button>

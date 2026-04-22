@@ -1,0 +1,309 @@
+<% content_for :head do %>
+  <style>
+    .alerts-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .alerts-toolbar h2{font-size:15px;font-weight:600;color:var(--text-primary);letter-spacing:-.2px}
+    .alerts-toolbar .count{font-size:11px;color:var(--text-tertiary);margin-left:6px;font-weight:500}
+    .btn-new-alert{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+    .btn-new-alert:hover{background:#2563EB;transform:translateY(-1px);box-shadow:0 4px 12px rgba(59,130,246,.3)}
+    .alert-row{display:grid;grid-template-columns:72px 1fr auto auto auto auto;gap:14px;align-items:center;padding:14px 12px;border-bottom:1px solid var(--border);transition:background .15s}
+    .alert-row:hover{background:var(--bg-hover)}
+    .alert-row:last-child{border-bottom:0}
+    .alert-sym-badge{font-family:var(--f-data);font-size:12px;font-weight:700;background:var(--bg-elevated);color:var(--text-primary);padding:4px 10px;border-radius:5px;text-align:center;border:1px solid var(--border-light)}
+    .alert-desc{font-size:13px;color:var(--text-primary);line-height:1.4}
+    .alert-meta{font-size:11px;color:var(--text-tertiary);margin-top:2px;font-family:var(--f-data)}
+    .channel-icons{display:flex;gap:4px}
+    .ci{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;background:var(--bg-elevated);color:var(--text-secondary)}
+    .ci.active{background:var(--accent-dim);color:var(--accent)}
+    .alert-triggered{font-size:11px;color:var(--text-tertiary);font-family:var(--f-data);min-width:80px;text-align:right}
+    .alert-triggered b{color:var(--text-primary);font-weight:600}
+    .toggle-switch{position:relative;display:inline-block;width:34px;height:20px;cursor:pointer}
+    .toggle-switch input{opacity:0;width:0;height:0}
+    .toggle-slider{position:absolute;inset:0;background:var(--bg-elevated);border-radius:10px;transition:.2s;border:1px solid var(--border-light)}
+    .toggle-slider:before{content:"";position:absolute;height:14px;width:14px;left:2px;top:2px;background:var(--text-tertiary);border-radius:50%;transition:.2s}
+    input:checked + .toggle-slider{background:var(--accent-dim);border-color:var(--accent)}
+    input:checked + .toggle-slider:before{transform:translateX(14px);background:var(--accent)}
+    .alert-actions{display:flex;gap:4px}
+    .alert-actions button{background:none;border:1px solid var(--border);color:var(--text-secondary);border-radius:5px;padding:5px 8px;cursor:pointer;font-size:11px;transition:all .15s}
+    .alert-actions button:hover{border-color:var(--accent);color:var(--accent)}
+    .alert-actions button.danger:hover{border-color:var(--loss);color:var(--loss)}
+    .history-row{display:grid;grid-template-columns:88px 60px 1fr auto;gap:14px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px}
+    .history-row:last-child{border-bottom:0}
+    .history-time{font-family:var(--f-data);color:var(--text-tertiary);font-size:11px}
+    .history-msg{color:var(--text-primary)}
+    .history-channels{display:flex;gap:2px}
+
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(10,12,18,.8);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+    .modal-backdrop.hidden{display:none}
+    .modal-card{background:var(--bg-surface);border:1px solid var(--border-light);border-radius:12px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border)}
+    .modal-title{font-size:15px;font-weight:700}
+    .modal-close{background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:18px;padding:0;line-height:1;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+    .modal-close:hover{background:var(--bg-hover);color:var(--text-primary)}
+    .modal-body{padding:20px;display:flex;flex-direction:column;gap:18px}
+    .field-label{font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block}
+    .field-input{width:100%;padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-primary);border-radius:7px;font-size:13px;font-family:var(--f-ui);transition:all .15s}
+    .field-input:focus{outline:none;border-color:var(--accent);background:var(--bg-void)}
+    .search-results{margin-top:4px;background:var(--bg-void);border:1px solid var(--border);border-radius:7px;overflow:hidden;max-height:200px;overflow-y:auto}
+    .search-results:empty{display:none}
+    .search-result-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;background:none;border:none;color:var(--text-primary);cursor:pointer;text-align:left;transition:background .15s}
+    .search-result-item:hover{background:var(--bg-hover)}
+    .search-result-item .sym{font-family:var(--f-data);font-weight:700;font-size:12px;min-width:60px}
+    .search-result-item .name{font-size:12px;color:var(--text-secondary)}
+    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .type-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:10px;text-align:left}
+    .type-card:hover{border-color:var(--border-light);background:var(--bg-hover)}
+    .type-card.selected{border-color:var(--accent);background:var(--accent-dim)}
+    .type-card .ic{font-size:18px;line-height:1}
+    .type-card .name{font-size:12px;font-weight:600;color:var(--text-primary)}
+    .type-card .desc{font-size:10.5px;color:var(--text-tertiary);margin-top:3px;line-height:1.4}
+    .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .pill{background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-secondary);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+    .pill:hover{border-color:var(--accent);color:var(--accent)}
+    .pill.selected{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+    .dir-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
+    .dir-btn{background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-secondary);border-radius:7px;padding:9px 6px;font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s}
+    .dir-btn input{position:absolute;opacity:0;pointer-events:none}
+    .dir-btn:hover{border-color:var(--border-light)}
+    .dir-btn.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+    .condition-panel{display:none}
+    .condition-panel.active{display:block}
+    .channels-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .ch-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;text-align:center}
+    .ch-card.selected{border-color:var(--accent);background:var(--accent-dim)}
+    .ch-card.disabled{opacity:.5;cursor:not-allowed}
+    .ch-card .ic{font-size:16px}
+    .ch-card .label{font-size:11px;font-weight:600;margin-top:4px;color:var(--text-primary)}
+    .ch-card .setup{font-size:10px;color:var(--accent);margin-top:2px}
+    .modal-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+    .btn-cancel{background:none;border:1px solid var(--border);color:var(--text-secondary);padding:8px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
+    .btn-cancel:hover{border-color:var(--border-light);color:var(--text-primary)}
+    .btn-save{background:var(--accent);border:none;color:#fff;padding:8px 20px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+    .btn-save:hover{background:#2563EB;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+    .modal-error{color:var(--loss);font-size:12px;padding:0 20px 10px}
+    @media(max-width:640px){.alert-row{grid-template-columns:60px 1fr;gap:10px}.alert-row .channel-icons,.alert-row .alert-triggered{grid-column:2;justify-self:start}.type-grid{grid-template-columns:1fr}}
+  </style>
+<% end %>
+
+<div class="app" data-controller="alert-modal">
+  <nav class="sb">
+    <div class="sb-logo">S</div>
+    <a href="/" title="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></a>
+    <a href="/alerts" class="active" title="Alerts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></a>
+    <a href="/sidekiq" title="Jobs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></a>
+  </nav>
+
+  <div class="mc">
+    <header class="tb">
+      <div class="tb-left">
+        <div class="logo"><span class="logo-dot"></span>StockPulse</div>
+        <div class="tabs">
+          <a class="tab" href="/">Dashboard</a>
+          <a class="tab active" href="/alerts">Alerts</a>
+          <a class="tab" href="/profile">Profile</a>
+        </div>
+      </div>
+      <div class="tb-right">
+        <%= button_to "Logout", destroy_user_session_path, method: :delete, style: "background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:11px;padding:4px 8px" %>
+      </div>
+    </header>
+
+    <div class="cg" style="grid-template-columns:1fr;grid-template-rows:auto auto 1fr">
+      <%# Active Alerts %>
+      <div class="card">
+        <div class="alerts-toolbar">
+          <div>
+            <h2>Your Alerts<span class="count"><%= @alerts.size %> total</span></h2>
+          </div>
+          <button class="btn-new-alert" data-action="click->alert-modal#open">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Create Alert
+          </button>
+        </div>
+
+        <% if @alerts.any? %>
+          <div>
+            <% @alerts.each do |alert| %>
+              <% channels = alert.resolved_notification_channels %>
+              <div class="alert-row" data-alert-id="<%= alert.id %>">
+                <div class="alert-sym-badge"><%= alert.symbol %></div>
+                <div>
+                  <div class="alert-desc"><%= alert.human_description %></div>
+                  <div class="alert-meta">Cooldown <%= alert.cooldown_minutes %>m · Fired <%= alert.trigger_count || 0 %> time<%= alert.trigger_count == 1 ? "" : "s" %></div>
+                </div>
+                <div class="channel-icons">
+                  <span class="ci <%= 'active' if channels.include?('email') %>" title="Email">✉</span>
+                  <span class="ci <%= 'active' if channels.include?('telegram') %>" title="Telegram">✈</span>
+                  <span class="ci <%= 'active' if channels.include?('whatsapp') %>" title="WhatsApp">💬</span>
+                </div>
+                <div class="alert-triggered">
+                  <% if alert.last_triggered_at %>
+                    <b><%= time_ago_in_words(alert.last_triggered_at) %></b> ago
+                  <% else %>
+                    <span>—</span>
+                  <% end %>
+                </div>
+                <label class="toggle-switch" title="<%= alert.active? ? 'Active' : 'Inactive' %>">
+                  <input type="checkbox" <%= "checked" if alert.active? %> data-action="change->alert-modal#toggleAlert" data-alert-id="<%= alert.id %>">
+                  <span class="toggle-slider"></span>
+                </label>
+                <div class="alert-actions">
+                  <button title="Edit" data-action="click->alert-modal#open" data-alert-id="<%= alert.id %>">Edit</button>
+                  <button class="danger" title="Delete" data-action="click->alert-modal#deleteAlert" data-alert-id="<%= alert.id %>">Delete</button>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-tertiary);margin-bottom:8px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <p>No alerts yet</p>
+            <p style="font-size:11px;color:var(--text-tertiary);margin-top:4px">Create your first alert to get started</p>
+          </div>
+        <% end %>
+      </div>
+
+      <%# History %>
+      <div class="card">
+        <div class="ct">Recent Triggers</div>
+        <% if @recent_history.any? %>
+          <div>
+            <% @recent_history.each do |h| %>
+              <div class="history-row">
+                <span class="history-time"><%= l(h.triggered_at, format: :short) rescue h.triggered_at.strftime("%b %d %H:%M") %></span>
+                <span class="alert-sym-badge" style="padding:2px 8px;font-size:11px"><%= h.symbol %></span>
+                <span class="history-msg"><%= h.message %></span>
+                <span class="history-channels">
+                  <% Array(h.channels_notified).each do |ch| %>
+                    <span class="ci active" title="<%= ch %>">
+                      <%= { "email" => "✉", "telegram" => "✈", "whatsapp" => "💬" }[ch.to_s] || "•" %>
+                    </span>
+                  <% end %>
+                </span>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="empty">
+            <p>No alerts triggered yet</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# ===== Modal ===== %>
+  <div class="modal-backdrop hidden" data-alert-modal-target="modal" data-action="click->alert-modal#closeIfBackdrop">
+    <div class="modal-card" data-prevent-close>
+      <div class="modal-header">
+        <div class="modal-title" data-alert-modal-target="title">Create alert</div>
+        <button class="modal-close" data-action="click->alert-modal#close" aria-label="Close">✕</button>
+      </div>
+      <form class="modal-body" data-alert-modal-target="form" data-action="submit->alert-modal#submit">
+        <div>
+          <label class="field-label">Symbol</label>
+          <input type="text" class="field-input" placeholder="Search any symbol (AAPL, BTC, …)"
+                 data-alert-modal-target="symbolInput"
+                 data-action="input->alert-modal#searchSymbol">
+          <div class="search-results" data-alert-modal-target="searchResults"></div>
+        </div>
+
+        <div>
+          <label class="field-label">Alert type</label>
+          <div class="type-grid">
+            <button type="button" class="type-card" data-type-card data-type="price_above" data-action="click->alert-modal#selectType">
+              <span class="ic">📈</span>
+              <div><div class="name">Price Above</div><div class="desc">When price crosses above a target</div></div>
+            </button>
+            <button type="button" class="type-card" data-type-card data-type="price_below" data-action="click->alert-modal#selectType">
+              <span class="ic">📉</span>
+              <div><div class="name">Price Below</div><div class="desc">When price drops below a target</div></div>
+            </button>
+            <button type="button" class="type-card" data-type-card data-type="price_change_pct" data-action="click->alert-modal#selectType">
+              <span class="ic">📊</span>
+              <div><div class="name">% Change</div><div class="desc">When price moves by a percentage</div></div>
+            </button>
+            <button type="button" class="type-card" data-type-card data-type="volume_spike" data-action="click->alert-modal#selectType">
+              <span class="ic">📦</span>
+              <div><div class="name">Volume Spike</div><div class="desc">When volume exceeds average</div></div>
+            </button>
+          </div>
+        </div>
+
+        <%# Condition panels %>
+        <div class="condition-panel" data-condition-panel="price_above">
+          <label class="field-label">Target price ($)</label>
+          <input type="number" step="0.01" min="0" class="field-input" id="price-value" placeholder="e.g. 200.00">
+        </div>
+        <div class="condition-panel" data-condition-panel="price_below">
+          <label class="field-label">Target price ($)</label>
+          <input type="number" step="0.01" min="0" class="field-input" id="price-below-value" placeholder="e.g. 150.00">
+        </div>
+        <div class="condition-panel" data-condition-panel="price_change_pct">
+          <label class="field-label">Percentage change</label>
+          <input type="number" step="0.1" min="0" class="field-input" id="pct-value" placeholder="e.g. 5">
+          <div class="pills">
+            <% [1, 2, 5, 10, 20].each do |p| %>
+              <button type="button" class="pill" data-pct="<%= p %>" data-action="click->alert-modal#selectPercentage"><%= p %>%</button>
+            <% end %>
+          </div>
+          <label class="field-label" style="margin-top:14px">Direction</label>
+          <div class="dir-grid">
+            <label class="dir-btn"><input type="radio" name="pct-direction" value="up">🔺 Up</label>
+            <label class="dir-btn"><input type="radio" name="pct-direction" value="down">🔻 Down</label>
+            <label class="dir-btn selected"><input type="radio" name="pct-direction" value="any" checked>↕️ Either</label>
+          </div>
+        </div>
+        <div class="condition-panel" data-condition-panel="volume_spike">
+          <label class="field-label">Volume multiplier (vs 20-day average)</label>
+          <input type="number" step="0.1" min="0" class="field-input" id="volume-value" placeholder="e.g. 2">
+          <div class="pills">
+            <% [2, 3, 5, 10].each do |m| %>
+              <button type="button" class="pill" data-mult="<%= m %>" data-action="click->alert-modal#selectMultiplier"><%= m %>x</button>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label">Notification channels</label>
+          <div class="channels-row">
+            <label class="ch-card selected" data-channel-card>
+              <input type="checkbox" id="ch-email" checked hidden>
+              <div class="ic">✉️</div>
+              <div class="label">Email</div>
+            </label>
+            <label class="ch-card <%= 'disabled' unless @has_telegram %>" data-channel-card>
+              <input type="checkbox" id="ch-telegram" hidden <%= 'disabled' unless @has_telegram %>>
+              <div class="ic">✈️</div>
+              <div class="label">Telegram</div>
+              <% unless @has_telegram %><a href="/profile" class="setup">Set up</a><% end %>
+            </label>
+            <label class="ch-card <%= 'disabled' unless @has_whatsapp %>" data-channel-card>
+              <input type="checkbox" id="ch-whatsapp" hidden <%= 'disabled' unless @has_whatsapp %>>
+              <div class="ic">💬</div>
+              <div class="label">WhatsApp</div>
+              <% unless @has_whatsapp %><a href="/profile" class="setup">Set up</a><% end %>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label">Cooldown (don't repeat for)</label>
+          <select id="cooldown-select" class="field-input">
+            <option value="5">5 minutes</option>
+            <option value="15" selected>15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+            <option value="240">4 hours</option>
+            <option value="1440">24 hours</option>
+          </select>
+        </div>
+      </form>
+      <div class="modal-error" data-alert-modal-target="error" style="display:none"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" data-action="click->alert-modal#close">Cancel</button>
+        <button type="button" class="btn-save" data-action="click->alert-modal#submit" data-alert-modal-target="submit">Create Alert</button>
+      </div>
+    </div>
+  </div>
+</div>
