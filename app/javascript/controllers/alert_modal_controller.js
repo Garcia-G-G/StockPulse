@@ -188,7 +188,8 @@ export default class extends Controller {
       })
 
       if (res.ok) {
-        window.location.reload()
+        this.close()
+        this.refreshPage()
       } else {
         const err = await res.json().catch(() => ({}))
         this.showError(err.error || "Failed to save alert")
@@ -250,6 +251,16 @@ export default class extends Controller {
   }
 
   // --- Toggle / delete ---
+
+  // Turbo Drive re-render without a full browser reload — keeps scroll
+  // position and avoids a FOUC while still re-rendering the server markup.
+  refreshPage() {
+    if (window.Turbo?.visit) {
+      window.Turbo.visit(window.location.href, { action: "replace" })
+    } else {
+      window.location.reload()
+    }
+  }
 
   async toggleAlert(event) {
     const id = event.currentTarget.dataset.alertId

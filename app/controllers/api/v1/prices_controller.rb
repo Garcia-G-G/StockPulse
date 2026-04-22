@@ -13,35 +13,25 @@ module Api
         symbols = symbols.first(50)
 
         cache = Streaming::RedisPriceCache.new
-        cached = cache.get_prices(symbols)
+        cached = cache.get_prices(symbols) # single MGET round-trip
 
-        # Fill missing from Finnhub REST
+        # Parallel-fetch the cache misses in one batch.
         missing = cached.select { |_, v| v.nil? }.keys
         if missing.any?
-          client = FinnhubClient.new
-          missing.each do |sym|
-            begin
-              quote = client.quote(sym)
-              next if quote.nil? || quote["c"].to_f.zero?
-
-              cached[sym] = {
-                "symbol" => sym,
-                "price" => quote["c"],
-                "change" => quote["d"],
-                "change_percent" => quote["dp"],
-                "volume" => quote["v"],
-                "high" => quote["h"],
-                "low" => quote["l"],
-                "source" => "finnhub_rest",
-                "updated_at" => Time.current.to_i
-              }
-              cache.store_price(sym, cached[sym])
-            rescue BaseClient::RateLimitExceeded
-              break
-            rescue StandardError => e
-              Rails.logger.debug("[PricesController] Quote fetch failed for #{sym}: #{e.message}")
-              next
-            end
+          quotes = ParallelQuoteFetcher.new.fetch(missing)
+          now = Time.current.to_i
+          quotes.each do |sym, data|
+            cached[sym] = {
+              "symbol" => sym,
+              "price" => data[:price],
+              "change" => data[:change],
+              "change_percent" => data[:change_percent],
+              "high" => data[:high],
+              "low" => data[:low],
+              "source" => "finnhub_rest",
+              "updated_at" => now
+            }
+            cache.store_price(sym, cached[sym])
           end
         end
 

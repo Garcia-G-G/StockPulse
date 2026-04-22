@@ -23,27 +23,19 @@ class LandingController < ApplicationController
     redirect_to authenticated_root_path if user_signed_in?
   end
 
+  LANDING_STOCK_SYMBOLS = %w[AAPL MSFT GOOGL NVDA TSLA AMZN META AMD NFLX CRM SPOT].freeze
+  LANDING_CRYPTO_SYMBOLS = %w[BINANCE:BTCUSDT BINANCE:ETHUSDT BINANCE:SOLUSDT].freeze
+
   def prices
-    symbols = %w[AAPL MSFT GOOGL NVDA TSLA AMZN META AMD NFLX CRM SPOT]
-    api_key = ENV["FINNHUB_API_KEY"]
-
-    prices = symbols.filter_map do |sym|
-      quote = fetch_quote(sym, api_key)
-      next unless quote
-
-      { s: sym, p: quote["c"].to_f.round(2), c: quote["dp"].to_f.round(2) }
+    payload = Rails.cache.fetch("landing:prices", expires_in: 30.seconds) do
+      quotes = ParallelQuoteFetcher.new.fetch(LANDING_STOCK_SYMBOLS + LANDING_CRYPTO_SYMBOLS)
+      quotes.map do |symbol, data|
+        display = symbol.sub(/\ABINANCE:/, "").sub(/USDT\z/, "")
+        { s: display, p: data[:price].round(2), c: data[:change_percent].round(2) }
+      end
     end
 
-    # Add crypto with Finnhub crypto symbols
-    %w[BINANCE:BTCUSDT BINANCE:ETHUSDT BINANCE:SOLUSDT].each do |sym|
-      quote = fetch_quote(sym, api_key)
-      next unless quote
-
-      display = sym.split(":").last.gsub("USDT", "")
-      prices << { s: display, p: quote["c"].to_f.round(2), c: quote["dp"].to_f.round(2) }
-    end
-
-    render json: prices
+    render json: payload
   end
 
   def search

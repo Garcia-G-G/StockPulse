@@ -81,7 +81,17 @@ Rails.application.configure do
   config.active_support.report_deprecations = false
 
   # Use Redis for caching in production.
-  config.cache_store = :redis_cache_store, { url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1") }
+  config.cache_store = :redis_cache_store, {
+    url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1"),
+    expires_in: 1.hour,
+    pool: { size: ENV.fetch("RAILS_MAX_THREADS", 16).to_i, timeout: 5 },
+    error_handler: ->(method:, returning:, exception:) {
+      Rails.logger.warn("[cache_store] #{method} -> #{returning.inspect} (#{exception.class}: #{exception.message})")
+    }
+  }
+
+  # Compress HTML/JSON/CSS/JS responses.
+  config.middleware.use Rack::Deflater
 
   # Use Sidekiq for background job processing.
   config.active_job.queue_adapter = :sidekiq

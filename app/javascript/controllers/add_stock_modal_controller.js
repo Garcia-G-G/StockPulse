@@ -88,8 +88,7 @@ export default class extends Controller {
 
       if (res.ok || res.status === 201) {
         this.close()
-        // Reload to render the new row through ERB.
-        window.location.reload()
+        this.appendWatchlistRow({ symbol, name, exchange })
       } else {
         const body = await res.json().catch(() => ({}))
         this.showError(this.extractError(body) || "Could not add this stock.")
@@ -98,6 +97,39 @@ export default class extends Controller {
       console.error(e)
       this.showError("Network error. Please try again.")
     }
+  }
+
+  appendWatchlistRow({ symbol, name }) {
+    const panel = document.querySelector('.watchlist-panel[data-controller~="watchlist"]')
+    if (!panel) {
+      // Fallback: stay on page, user can refresh manually
+      return
+    }
+
+    // Remove "no stocks yet" empty state if present.
+    panel.querySelector(".empty-state")?.remove()
+
+    const row = document.createElement("div")
+    row.className = "wl-row"
+    row.dataset.wlSymbol = symbol
+    row.innerHTML = `
+      <div class="wl-left">
+        <div class="wl-sym-row">
+          <span class="wl-badge">${symbol}</span>
+        </div>
+        <div class="wl-name">${name || symbol}</div>
+      </div>
+      <div class="wl-spark"><canvas data-spark="${symbol}"></canvas></div>
+      <div class="wl-right">
+        <div class="wl-price">—</div>
+        <div class="wl-change neutral">—</div>
+      </div>
+    `
+    panel.appendChild(row)
+
+    // Ask the live watchlist controller to refresh immediately.
+    const ctrl = this.application.getControllerForElementAndIdentifier(panel, "watchlist")
+    if (ctrl?.fetchAll) ctrl.fetchAll()
   }
 
   extractError(body) {

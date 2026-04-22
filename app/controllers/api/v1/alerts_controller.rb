@@ -9,7 +9,8 @@ module Api
         scope = current_user.alerts
         scope = scope.where(active: true) if params[:active].to_s == "true"
         scope = scope.where(symbol: params[:symbol].to_s.upcase) if params[:symbol].present?
-        render json: scope.order(created_at: :desc).map { |a| serialize_alert(a) }
+        limit = (params[:limit].presence || 100).to_i.clamp(1, 500)
+        render json: scope.order(created_at: :desc).limit(limit).map { |a| serialize_alert(a) }
       end
 
       def show

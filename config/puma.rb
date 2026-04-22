@@ -25,8 +25,21 @@
 # Any libraries that use a connection pool or another resource pool should
 # be configured to provide at least as many connections as the number of
 # threads. This includes Active Record's `pool` parameter in `database.yml`.
-threads_count = ENV.fetch("RAILS_MAX_THREADS", 3)
-threads threads_count, threads_count
+max_threads_count = ENV.fetch("RAILS_MAX_THREADS", 16).to_i
+min_threads_count = ENV.fetch("RAILS_MIN_THREADS", 4).to_i
+threads min_threads_count, max_threads_count
+
+# Multi-process only in production — dev relies on in-process code reloading.
+if ENV.fetch("RAILS_ENV", "development") == "production"
+  workers ENV.fetch("WEB_CONCURRENCY", 2).to_i
+  preload_app!
+
+  on_worker_boot do
+    ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+  end
+
+  worker_timeout 60
+end
 
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 port ENV.fetch("PORT", 3000)

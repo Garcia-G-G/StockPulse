@@ -2,19 +2,42 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static values = {
-    refreshInterval: { type: Number, default: 10000 },
+    refreshInterval: { type: Number, default: 30000 },
     sparkPoints: { type: Number, default: 20 }
   }
 
   connect() {
     this.sparkData = this.restoreSparkData()
     this.fetchAll()
-    this.timer = setInterval(() => this.fetchAll(), this.refreshIntervalValue)
+    this.startTimer()
+
+    this._onVisibility = () => {
+      if (document.hidden) {
+        this.stopTimer()
+      } else {
+        this.fetchAll()
+        this.startTimer()
+      }
+    }
+    document.addEventListener("visibilitychange", this._onVisibility)
   }
 
   disconnect() {
-    if (this.timer) clearInterval(this.timer)
+    this.stopTimer()
+    document.removeEventListener("visibilitychange", this._onVisibility)
     this.persistSparkData()
+  }
+
+  startTimer() {
+    this.stopTimer()
+    this.timer = setInterval(() => this.fetchAll(), this.refreshIntervalValue)
+  }
+
+  stopTimer() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
   }
 
   // ------- Data fetching -------
@@ -210,15 +233,11 @@ export default class extends Controller {
     }
   }
 
-  // Called by add_stock_modal after a successful create. Expects event.detail = { symbol, name, id }.
+  // Called by add_stock_modal after it has already inserted the row into
+  // the panel. Just kick off a fetch so the new row hydrates.
   symbolAdded(event) {
-    const { symbol, name, id } = event.detail || {}
+    const { symbol } = event.detail || {}
     if (!symbol) return
-    if (this.element.querySelector(`[data-wl-symbol="${symbol}"]`)) {
-      this.fetchAll()
-      return
-    }
-    // Reload to let ERB render the new row; lightweight option for MVP.
-    window.location.reload()
+    this.fetchAll()
   }
 }

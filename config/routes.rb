@@ -16,13 +16,16 @@ Rails.application.routes.draw do
   # Root routing based on auth state
   unauthenticated :user do
     root "landing#index"
-    get "/api/search", to: "landing#search"
     get "/quote/:symbol", to: "quotes#show", as: "public_quote"
   end
 
   authenticated :user do
     root "dashboard#index", as: :authenticated_root
   end
+
+  # Public landing data endpoints (used by landing + dashboard fallback).
+  get "/api/search", to: "landing#search"
+  get "/api/prices", to: "landing#prices"
 
   # Onboarding
   get "/onboarding", to: "onboarding#show"
