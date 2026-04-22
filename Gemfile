@@ -49,7 +49,7 @@ gem "twilio-ruby", "~> 7.0"
 
 # Configuration
 gem "dotenv-rails"
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 gem "anyway_config", "~> 2.6"
 
 # Frontend
