@@ -45,7 +45,7 @@ gem "stimulus-rails"
 gem "telegram-bot-ruby", "~> 2.0"
 
 # WhatsApp
-gem "twilio-ruby", "~> 7.0"
+gem "twilio-ruby", "~> 7.10"
 
 # Configuration
 gem "dotenv-rails"
