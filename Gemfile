@@ -5,7 +5,7 @@ ruby ">= 3.3"
 # Core
 gem "rails", "~> 8.0"
 gem "pg", "~> 1.5"
-gem "puma", "~> 7.0"
+gem "puma", "~> 8.0"
 gem "redis", "~> 5.1"
 gem "hiredis-client"
 gem "connection_pool"
