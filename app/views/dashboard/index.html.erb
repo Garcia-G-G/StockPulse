@@ -1,127 +1,237 @@
-<div class="app" data-controller="dashboard-prices">
-  <!-- Sidebar -->
-  <nav class="sb">
-    <div class="sb-logo">S</div>
-    <a href="/" class="active" title="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></a>
-    <a href="/sidekiq" title="Jobs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></a>
-    <a href="/api/v1/health" title="Health"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></a>
-    <div class="sb-footer"><div class="cdot" style="width:6px;height:6px;margin:0 auto"></div></div>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "dashboard", "data-turbo-track": "reload" %>
+<% end %>
+
+<div class="dashboard-layout">
+  <%# ---------- Sidebar ---------- %>
+  <nav class="ds-sidebar" aria-label="Primary">
+    <div class="ds-logo" title="StockPulse">S</div>
+    <a href="/" class="ds-nav-link active" title="Dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    </a>
+    <a href="/alerts" class="ds-nav-link" title="Alerts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </a>
+    <a href="/profile" class="ds-nav-link" title="Profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </a>
+    <a href="/sidekiq" class="ds-nav-link" title="Jobs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    </a>
   </nav>
 
-  <!-- Main -->
-  <div class="mc">
-    <!-- Top bar -->
-    <header class="tb">
-      <div class="tb-left">
-        <div class="logo"><span class="logo-dot"></span>StockPulse</div>
-        <div class="tabs">
-          <a class="tab active" href="/">Dashboard</a>
-          <a class="tab" href="/profile">Profile</a>
-        </div>
+  <%# ---------- Main ---------- %>
+  <main class="dashboard-main" data-controller="add-stock-modal">
+    <%# Top bar %>
+    <header class="ds-topbar">
+      <div class="ds-topbar-left">
+        <div class="ds-brand"><span class="ds-brand-dot"></span>StockPulse</div>
+        <nav class="ds-tabs" aria-label="Sections">
+          <a class="ds-tab active" href="/">Dashboard</a>
+          <a class="ds-tab" href="/alerts">Alerts</a>
+          <a class="ds-tab" href="/profile">Profile</a>
+        </nav>
       </div>
-      <div class="tb-right">
-        <div id="market-badge" class="mbadge closed"><span id="mdot" style="width:5px;height:5px;border-radius:50%;display:inline-block"></span><span id="mlabel">—</span></div>
-        <span class="clock" id="clock">--:--:--</span>
-        <div class="cdot" title="System connected"></div>
-        <a href="/profile" class="tab" title="Profile" style="padding:0;margin-left:8px"><div style="width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff"><%= current_user.name&.first&.upcase || "U" %></div></a>
-        <%= button_to "Logout", destroy_user_session_path, method: :delete, style: "background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:11px;padding:4px 8px" %>
+      <div class="ds-topbar-right">
+        <span class="ds-user-chip" title="<%= current_user.email %>"><%= current_user.name&.first&.upcase || "U" %></span>
+        <%= button_to "Log out", destroy_user_session_path, method: :delete, form_class: "inline", class: "ds-logout-btn" %>
       </div>
     </header>
 
-    <!-- Content -->
-    <div class="cg">
-      <!-- Stats row -->
-      <div class="sr">
-        <div class="sc">
-          <div class="sc-label">Watchlist</div>
-          <div class="sc-val"><%= @watchlist_items.count %></div>
-          <div class="sc-sub">symbols tracked</div>
+    <%# ---------- Stats row ---------- %>
+    <section class="stats-grid" data-controller="market-clock">
+      <div class="stat-card">
+        <div>
+          <div class="stat-value"><%= @watchlist_items.size %></div>
+          <div class="stat-label">Symbols tracked</div>
         </div>
-        <div class="sc">
-          <div class="sc-label">Alerts Today</div>
-          <div class="sc-val"><%= @alerts_today %></div>
-          <div class="sc-sub">triggered</div>
-        </div>
-        <div class="sc">
-          <div class="sc-label">Active Alerts</div>
-          <div class="sc-val"><%= @active_alerts %></div>
-          <div class="sc-sub">monitoring</div>
-        </div>
-        <div class="sc">
-          <div class="sc-label">Symbols</div>
-          <div class="sc-val"><%= @watchlist_items.count %></div>
-          <div class="sc-sub">in watchlist</div>
+        <div class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         </div>
       </div>
 
-      <!-- Watchlist card -->
-      <div class="card">
-        <div class="ct">Watchlist</div>
+      <div class="stat-card">
+        <div>
+          <div class="stat-value"><%= @alerts_today %></div>
+          <div class="stat-label">Alerts today</div>
+        </div>
+        <div class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div>
+          <div class="stat-value"><%= @active_alerts %></div>
+          <div class="stat-label">Active alerts</div>
+        </div>
+        <div class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div>
+          <div class="stat-value">
+            <span class="market-dot closed" data-market-clock-target="dot"></span>
+            <span data-market-clock-target="label">Checking…</span>
+          </div>
+          <div class="stat-label" data-market-clock-target="time">— ET</div>
+        </div>
+      </div>
+    </section>
+
+    <%# ---------- Portfolio chart ---------- %>
+    <% if @primary_symbol %>
+      <section class="glass-card chart-card"
+               data-controller="portfolio-chart"
+               data-portfolio-chart-symbol-value="<%= @primary_symbol %>"
+               data-portfolio-chart-period-value="24h">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title-row">
+              <span class="wl-badge" data-portfolio-chart-target="symbol"><%= @primary_symbol %></span>
+              <span class="chart-title">Intraday price</span>
+            </div>
+            <div style="margin-top:8px;display:flex;align-items:baseline;gap:8px">
+              <span class="chart-price" data-portfolio-chart-target="price">—</span>
+              <span class="chart-change" data-portfolio-chart-target="change">—</span>
+            </div>
+          </div>
+          <div class="chart-periods">
+            <% %w[1h 24h 7d 30d].each do |p| %>
+              <button type="button" class="chart-period <%= 'active' if p == '24h' %>" data-period="<%= p %>" data-action="click->portfolio-chart#selectPeriod"><%= p %></button>
+            <% end %>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas data-portfolio-chart-target="canvas"></canvas>
+          <div class="chart-loading" data-portfolio-chart-target="loading">Loading chart…</div>
+        </div>
+      </section>
+    <% end %>
+
+    <%# ---------- Content grid ---------- %>
+    <section class="dashboard-content">
+      <%# Watchlist %>
+      <div class="glass-card watchlist-panel" data-controller="watchlist">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Watchlist</div>
+            <div class="panel-subtitle"><%= @watchlist_items.size %> <%= "symbol".pluralize(@watchlist_items.size) %> · live prices</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <a href="/alerts" class="panel-action">Manage alerts →</a>
+            <button type="button" class="btn-add-stock" data-action="click->add-stock-modal#open" aria-label="Add stock">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add
+            </button>
+          </div>
+        </div>
+
         <% if @watchlist_items.any? %>
-          <table class="wl">
-            <thead><tr><th>Symbol</th><th>Exchange</th><th>Price</th><th>Change</th><th>Status</th></tr></thead>
-            <tbody>
-              <% @watchlist_items.each do |item| %>
-                <tr>
-                  <td><div class="sym"><%= item.symbol %></div><div class="sym-name"><%= item.name || item.symbol %></div></td>
-                  <td><span class="ex"><%= item.exchange || "—" %></span></td>
-                  <td class="pr" data-symbol="<%= item.symbol %>" data-field="price">—</td>
-                  <td class="ch" data-symbol="<%= item.symbol %>" data-field="change">—</td>
-                  <td style="text-align:right"><span class="gain" style="font-size:11px">● Active</span></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
+          <% @watchlist_items.each do |item| %>
+            <% alert_count = @alert_counts_by_symbol[item.symbol].to_i %>
+            <div class="wl-row" data-wl-symbol="<%= item.symbol %>" data-wl-id="<%= item.id %>">
+              <div class="wl-left">
+                <div class="wl-sym-row">
+                  <span class="wl-badge"><%= item.symbol %></span>
+                  <% if item.exchange.present? %>
+                    <span class="wl-sym" style="font-size:11px;color:var(--text-muted);font-weight:500"><%= item.exchange %></span>
+                  <% end %>
+                </div>
+                <div class="wl-name"><%= item.name.presence || item.symbol %></div>
+                <% if alert_count.positive? %>
+                  <span class="wl-alerts-badge"><span class="dot"></span><%= alert_count %> <%= "alert".pluralize(alert_count) %></span>
+                <% end %>
+              </div>
+              <div class="wl-spark">
+                <canvas data-spark="<%= item.symbol %>"></canvas>
+              </div>
+              <div class="wl-right">
+                <div class="wl-price">—</div>
+                <div class="wl-change neutral">—</div>
+                <button type="button" class="wl-remove-btn" data-wl-id="<%= item.id %>" data-action="click->watchlist#remove" aria-label="Remove">Remove</button>
+              </div>
+            </div>
+          <% end %>
         <% else %>
-          <div class="empty">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-tertiary);margin-bottom:8px"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            <p>No symbols yet</p>
-            <p style="font-size:11px;color:var(--text-tertiary);margin-top:4px">Use the API or Telegram bot to add symbols</p>
+          <div class="empty-state">
+            <span class="ico">📈</span>
+            <p>No stocks in your watchlist yet.</p>
+            <p class="sub">Add your first symbol to start tracking prices.</p>
+            <button type="button" class="btn-add-stock" data-action="click->add-stock-modal#open" style="margin-top:14px">Add a stock</button>
           </div>
         <% end %>
       </div>
 
-      <!-- Alerts card -->
-      <div class="card">
-        <div class="ct">Recent Alerts</div>
+      <%# Activity feed %>
+      <div class="glass-card activity-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Activity</div>
+            <div class="panel-subtitle">Recent alert triggers</div>
+          </div>
+          <% if @recent_alerts.any? %>
+            <a href="/alerts" class="panel-action">View all →</a>
+          <% end %>
+        </div>
+
         <% if @recent_alerts.any? %>
-          <div class="al">
-            <% @recent_alerts.each_with_index do |ah, i| %>
-              <% is_gain = ah.alert_type.include?("above") || ah.alert_type.include?("overbought") %>
-              <div class="ai" style="animation-delay:<%= i * 40 %>ms">
-                <div class="adot" style="background:<%= is_gain ? 'var(--gain)' : 'var(--loss)' %>"></div>
-                <div>
-                  <div class="atype"><%= ah.alert_type.tr("_", " ") %></div>
-                  <div class="amsg"><%= truncate(ah.message, length: 90) %></div>
-                  <div class="atime"><%= time_ago_in_words(ah.triggered_at) %> ago</div>
+          <div class="feed-list">
+            <% @recent_alerts.each do |history| %>
+              <% type = history.alert_type.to_s %>
+              <% klass = type.include?("above") || type.include?("oversold") || type.include?("crossover") ? "gain" : type.include?("below") || type.include?("overbought") ? "loss" : "neutral" %>
+              <div class="feed-item">
+                <span class="feed-dot <%= klass %>"></span>
+                <div class="feed-content">
+                  <div class="feed-text">
+                    <strong><%= history.symbol %></strong>
+                    <%= history.message.presence || type.tr("_", " ") %>
+                  </div>
+                  <div class="feed-meta">
+                    <span><%= time_ago_in_words(history.triggered_at) %> ago</span>
+                    <% channels = Array(history.channels_notified) %>
+                    <% if channels.any? %>
+                      <span class="feed-ch">
+                        <% channels.each do |ch| %>
+                          <span title="<%= ch %>"><%= { "email" => "✉", "telegram" => "✈", "whatsapp" => "💬" }[ch.to_s] || "•" %></span>
+                        <% end %>
+                      </span>
+                    <% end %>
+                  </div>
                 </div>
               </div>
             <% end %>
           </div>
         <% else %>
-          <div class="empty">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-tertiary);margin-bottom:8px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="empty-state">
+            <span class="ico">🔔</span>
             <p>No alerts triggered yet</p>
+            <p class="sub">Set up alerts to get notified when your stocks move.</p>
+            <a href="/alerts">Create alert →</a>
           </div>
         <% end %>
       </div>
-    </div>
+    </section>
+  </main>
 
-    <!-- Status bar -->
-    <footer class="sbar">
-      <span><span class="sdot" style="background:<%= @system_healthy ? 'var(--gain)' : 'var(--loss)' %>"></span><%= @system_healthy ? "Connected" : "Issues" %></span>
-      <span><%= @watchlist_items.count %> symbols</span>
-      <span><%= @active_alerts %> alerts</span>
-      <span><%= @alerts_today %> triggered today</span>
-    </footer>
+  <%# ---------- Add-stock modal ---------- %>
+  <div class="as-backdrop hidden" data-add-stock-modal-target="backdrop" data-action="click->add-stock-modal#closeIfBackdrop">
+    <div class="as-card" role="dialog" aria-label="Add stock to watchlist">
+      <div class="as-header">
+        <div class="as-title">Add to watchlist</div>
+        <button type="button" class="as-close" data-action="click->add-stock-modal#close" aria-label="Close">✕</button>
+      </div>
+      <div class="as-body">
+        <input type="text"
+               class="as-input"
+               placeholder="Search any symbol or company (AAPL, Apple, BTC…)"
+               data-add-stock-modal-target="input"
+               data-action="input->add-stock-modal#search">
+        <div class="as-results" data-add-stock-modal-target="results"></div>
+        <div data-add-stock-modal-target="error" style="display:none;color:var(--loss);font-size:12px;margin-top:10px"></div>
+      </div>
+    </div>
   </div>
 </div>
-
-<%= turbo_stream_from "prices" %>
-
-<script>
-  // Clock
-  !function(){const e=document.getElementById("clock");setInterval(()=>{const t=new Date,n=t.toLocaleTimeString("en-US",{hour12:false,hour:"2-digit",minute:"2-digit",second:"2-digit"}),z=t.toLocaleTimeString("en-US",{timeZoneName:"short"}).split(" ").pop();e.textContent=n+" "+z},1000)}();
-  // Market status
-  !function(){const b=document.getElementById("market-badge"),d=document.getElementById("mdot"),l=document.getElementById("mlabel");function u(){const n=new Date,e=new Date(n.toLocaleString("en-US",{timeZone:"America/New_York"})),h=e.getHours(),m=e.getMinutes(),dy=e.getDay(),t=h*60+m,o=dy>=1&&dy<=5&&t>=570&&t<960;b.className="mbadge "+(o?"open":"closed");d.style.background=o?"var(--gain)":"var(--loss)";l.textContent=o?"Market Open":"Market Closed"}u();setInterval(u,30000)}();
-</script>
