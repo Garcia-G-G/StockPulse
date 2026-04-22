@@ -42,7 +42,7 @@ gem "turbo-rails"
 gem "stimulus-rails"
 
 # Telegram
-gem "telegram-bot-ruby", "~> 2.0"
+gem "telegram-bot-ruby", "~> 2.7"
 
 # WhatsApp
 gem "twilio-ruby", "~> 7.0"
