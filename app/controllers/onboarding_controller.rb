@@ -4,6 +4,8 @@ class OnboardingController < ApplicationController
   layout "landing"
   before_action :authenticate_user!
 
+  TOTAL_STEPS = 4
+
   def show
     redirect_to authenticated_root_path if current_user.onboarding_completed?
   end
@@ -14,22 +16,13 @@ class OnboardingController < ApplicationController
     when 1
       render json: { success: true, next_step: 2 }
     when 2
-      symbols = params.dig(:data, :symbols) || []
-      symbols.first(20).each do |s|
-        next unless s.match?(/\A[A-Z]{1,5}\z/)
-        current_user.watchlist_items.find_or_create_by(symbol: s.upcase) do |wi|
-          wi.added_at = Time.current
-        end
-      end
-      render json: { success: true, next_step: 3 }
-    when 3
       create_onboarding_alert(
         symbol: params.dig(:data, :symbol),
         alert_type: params.dig(:data, :alert_type),
         raw_condition: params.dig(:data, :condition)
       )
-      render json: { success: true, next_step: 4 }
-    when 4
+      render json: { success: true, next_step: 3 }
+    when 3
       updates = {}
       email = params.dig(:data, :email)
       telegram = params.dig(:data, :telegram_chat_id)
@@ -43,8 +36,8 @@ class OnboardingController < ApplicationController
           return
         end
       end
-      render json: { success: true, next_step: 5 }
-    when 5
+      render json: { success: true, next_step: 4 }
+    when 4
       current_user.update!(onboarding_completed: true)
       render json: { success: true, redirect_to: authenticated_root_path }
     else
@@ -70,7 +63,6 @@ class OnboardingController < ApplicationController
         channels: ["email"]
       )
     else
-      # Legacy price_above/below path: direction + price
       direction = raw_condition[:direction].to_s
       price = raw_condition[:price].to_f
       return unless %w[above below].include?(direction) && price.positive?

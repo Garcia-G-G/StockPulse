@@ -208,5 +208,57 @@
   .ai-grid,.notif-grid{grid-template-columns:1fr}
   .cta-form{flex-direction:column}
   .footer-inner{flex-direction:column;gap:16px;text-align:center}
-  .stock-grid{grid-template-columns:repeat(2,1fr)}
+
+  /* --- Auth pages (signup/login) --- */
+  .auth-page{grid-template-columns:1fr;min-height:auto}
+  .auth-left{padding:24px 20px 12px;min-height:auto}
+  .auth-left-content h2{font-size:22px}
+  .auth-features{display:none}
+  .auth-right{padding:24px 20px 40px}
+  .auth-input{font-size:16px}
+
+  /* --- Onboarding --- */
+  .onboarding-container{padding:24px 12px}
+  .onboarding-card{padding:24px 18px;border-radius:14px}
+  .stock-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .onboarding-actions{flex-direction:column;gap:8px}
+  .onboarding-actions button{width:100%;min-height:44px}
+  .onboarding-input{font-size:16px}
+  .pct-pills{flex-wrap:wrap}
+  .alert-direction{flex-direction:column;gap:6px}
+  .alert-direction label{justify-content:flex-start}
+  .alert-mode{flex-direction:column;gap:6px}
+
+  /* --- Profile --- */
+  .profile-section{padding:18px 16px}
+  .profile-input{font-size:16px}
+  .profile-grid-2{grid-template-columns:1fr}
+}
+
+/* === ONBOARDING — extras added in prompt 25 === */
+.onboarding-field-label{
+  font-size:12px;color:var(--text-secondary);margin-bottom:6px;display:block;
+}
+.onboarding-alert-for{
+  font-size:12px;color:var(--text-muted);margin-top:6px;
+}
+.onboarding-alert-for strong{color:var(--text-primary);font-weight:600}
+
+.onboarding-container .search-results{max-height:200px;overflow-y:auto}
+.onboarding-container .search-results:empty{display:none}
+.onboarding-container .search-result-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 12px;background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);border-radius:8px;
+  color:var(--text-primary);cursor:pointer;font-size:13px;
+  margin-bottom:4px;text-align:left;transition:background .15s, border-color .15s;
+}
+.onboarding-container .search-result-item:hover{
+  background:rgba(59,130,246,0.1);border-color:var(--border-glow);
+}
+.onboarding-container .search-result-item .sym{
+  font-weight:700;font-family:var(--f-data),"JetBrains Mono",monospace;min-width:60px;
+}
+.onboarding-container .search-result-item .name{
+  color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }

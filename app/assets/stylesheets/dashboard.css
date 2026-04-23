@@ -581,19 +581,44 @@ body::before {
 @media (max-width: 768px) {
   .dashboard-layout { grid-template-columns: 1fr; }
   .ds-sidebar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0; top: auto;
     flex-direction: row;
-    height: auto;
+    height: 56px;
     width: 100%;
-    padding: 10px 14px;
+    padding: 0 8px;
     justify-content: space-around;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    z-index: 100;
+    border-top: 1px solid var(--border);
+    border-right: none;
   }
-  .ds-logo { margin-bottom: 0; }
-  .dashboard-main { padding: 16px 14px 24px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .ds-logo { display: none; }
+  .ds-nav-link[href="/sidekiq"] { display: none; }
+  .dashboard-main { padding: 16px 14px calc(64px + env(safe-area-inset-bottom, 0px)); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 12px 14px; }
+  .stat-card .stat-value { font-size: 22px; }
+  .ds-topbar { flex-wrap: wrap; gap: 10px; padding: 6px 0 14px; }
   .ds-tabs { display: none; }
-  .watchlist-panel .wl-row { grid-template-columns: 1fr auto; }
+  .chart-periods { flex-wrap: wrap; gap: 4px; }
+  .chart-period { font-size: 11px; padding: 4px 8px; }
+  .chart-canvas-wrap { height: 220px; }
+  .watchlist-panel .wl-row { grid-template-columns: 1fr auto; padding: 12px 14px; }
   .watchlist-panel .wl-spark { display: none; }
+  .wl-remove-btn { opacity: 0.6; }
+  .panel-header { flex-wrap: wrap; gap: 8px; padding: 14px 16px 10px; }
+  .btn-add-stock { min-height: 38px; }
+  .as-card { max-width: 100%; max-height: 100vh; border-radius: 12px 12px 0 0; align-self: flex-end; }
+  .as-input { font-size: 16px; }
+}
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+/* Always-on visibility for the remove button on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .wl-remove-btn { opacity: 0.55; }
+  .btn-add-stock, .wl-remove-btn, .ds-nav-link {
+    -webkit-tap-highlight-color: transparent;
+  }
+  input, select, textarea { font-size: 16px !important; }
 }

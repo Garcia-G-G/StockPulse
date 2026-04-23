@@ -148,6 +148,8 @@ export default class extends Controller {
     event.preventDefault()
     this.hideError()
 
+    if (this._submitting) return
+
     const symbol = this.symbolInputTarget.value.trim().toUpperCase()
     const alertType = this.element.querySelector("[data-type-card].selected")?.dataset.type
 
@@ -174,6 +176,13 @@ export default class extends Controller {
     const alertId = this.formTarget.dataset.alertId
     const url = alertId ? `/api/v1/alerts/${alertId}` : "/api/v1/alerts"
     const method = alertId ? "PATCH" : "POST"
+    const idleLabel = alertId ? "Save Changes" : "Create Alert"
+
+    this._submitting = true
+    if (this.hasSubmitTarget) {
+      this.submitTarget.disabled = true
+      this.submitTarget.textContent = "Saving…"
+    }
 
     try {
       const res = await fetch(url, {
@@ -190,6 +199,7 @@ export default class extends Controller {
       if (res.ok) {
         this.close()
         this.refreshPage()
+        return
       } else {
         const err = await res.json().catch(() => ({}))
         this.showError(err.error || "Failed to save alert")
@@ -197,6 +207,12 @@ export default class extends Controller {
     } catch (e) {
       console.error(e)
       this.showError("Network error. Please try again.")
+    } finally {
+      this._submitting = false
+      if (this.hasSubmitTarget && this.submitTarget.isConnected) {
+        this.submitTarget.disabled = false
+        this.submitTarget.textContent = idleLabel
+      }
     }
   }
 

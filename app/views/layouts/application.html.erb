@@ -71,7 +71,30 @@
       .sbar .sdot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:6px}
       .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;color:var(--text-tertiary);font-size:13px;text-align:center;flex:1}
       @media(max-width:1024px){.cg{grid-template-columns:1fr}.sr{grid-template-columns:repeat(2,1fr)}}
-      @media(max-width:768px){.sb{display:none}.tabs{display:none}}
+      @media(max-width:768px){
+        body{height:auto;overflow:auto}
+        .app{flex-direction:column}
+        .sb{position:fixed;bottom:0;left:0;right:0;top:auto;height:56px;width:100%;flex-direction:row;justify-content:space-around;align-items:center;padding:0 8px;z-index:100;border-top:1px solid var(--border);border-right:none}
+        .sb-logo,.sb-footer{display:none}
+        .sb a{width:44px;height:44px;padding:8px 12px}
+        .sb a[href="/sidekiq"]{display:none}
+        .mc{padding-bottom:64px;width:100%;height:auto;overflow:visible}
+        .tb{padding:8px 12px;flex-wrap:wrap;gap:8px;height:auto}
+        .tb-left{flex-wrap:wrap;gap:8px}
+        .tabs{display:flex;gap:4px;overflow-x:auto}
+        .tab{font-size:12px;padding:4px 8px}
+        .cg{padding:12px;gap:12px;overflow-y:visible}
+        .sr{grid-template-columns:repeat(2,1fr);gap:8px}
+        .card{padding:14px;border-radius:10px}
+        table.wl{display:block;overflow-x:auto}
+        .sbar{padding:0 10px;gap:10px;font-size:10px}
+      }
+      @media(max-width:480px){.sr{grid-template-columns:1fr}}
+      /* Touch-friendly minimum tap targets + no iOS zoom on input focus */
+      @media(hover:none) and (pointer:coarse){
+        button,a.tab,.toggle-switch{min-height:44px}
+        input,select,textarea{font-size:16px !important}
+      }
       @keyframes priceFlash{0%{background-color:rgba(59,130,246,.25)}100%{background-color:transparent}}
       .price-flash{animation:priceFlash .6s ease-out}
       .text-gain{color:var(--gain)}.text-loss{color:var(--loss)}

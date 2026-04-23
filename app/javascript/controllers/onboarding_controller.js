@@ -1,21 +1,34 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["step", "progressBar", "stepNum", "selectedStocks", "alertSymbol", "alertMode", "pctPanel", "pricePanel", "pctValue", "alertPrice", "emailInput", "telegramInput", "whatsappInput", "step4Error"]
+  static targets = [
+    "step", "progressBar", "stepNum",
+    "symbolSearch", "searchResults", "alertSymbol",
+    "alertMode", "pctPanel", "pricePanel", "pctValue", "alertPrice",
+    "emailInput", "telegramInput", "whatsappInput", "step3Error"
+  ]
+
+  static values = { totalSteps: { type: Number, default: 4 } }
 
   connect() {
     this.currentStep = 1
-    this.selectedStocks = []
+    this.selectedSymbol = ""
     this.wireAlertMode()
   }
 
+  disconnect() {
+    if (this._searchTimer) clearTimeout(this._searchTimer)
+  }
+
+  // ----- Alert mode toggle -----
+
   wireAlertMode() {
-    this.element.querySelectorAll('.alert-mode .mode-btn').forEach(btn => {
+    this.element.querySelectorAll(".alert-mode .mode-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const mode = btn.dataset.mode
-        this.element.querySelectorAll('.alert-mode .mode-btn').forEach(b => b.classList.remove("selected"))
+        this.element.querySelectorAll(".alert-mode .mode-btn").forEach(b => b.classList.remove("selected"))
         btn.classList.add("selected")
-        if (this.hasPctPanelTarget) this.pctPanelTarget.style.display = mode === "pct" ? "block" : "none"
+        if (this.hasPctPanelTarget)   this.pctPanelTarget.style.display   = mode === "pct"   ? "block" : "none"
         if (this.hasPricePanelTarget) this.pricePanelTarget.style.display = mode === "price" ? "block" : "none"
       })
     })
@@ -29,11 +42,56 @@ export default class extends Controller {
     e.currentTarget.classList.add("selected")
   }
 
+  // ----- Symbol search -----
+
+  searchSymbol(event) {
+    const query = event.target.value.trim()
+    if (query.length < 1) {
+      this.searchResultsTarget.innerHTML = ""
+      return
+    }
+
+    clearTimeout(this._searchTimer)
+    this._searchTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { credentials: "same-origin" })
+        if (!res.ok) return
+        const data = await res.json()
+        const items = (Array.isArray(data) ? data : data.results || []).slice(0, 5)
+        this.searchResultsTarget.innerHTML = items.map(r => {
+          const sym = r.symbol || r.s || ""
+          const name = this.escape(r.name || r.description || "")
+          return `<button type="button" class="search-result-item" data-action="click->onboarding#pickSymbol" data-symbol="${this.escape(sym)}">
+            <span class="sym">${this.escape(sym)}</span><span class="name">${name}</span>
+          </button>`
+        }).join("")
+      } catch (e) {
+        console.warn("symbol search failed:", e)
+      }
+    }, 200)
+  }
+
+  pickSymbol(event) {
+    event.preventDefault()
+    this.selectedSymbol = event.currentTarget.dataset.symbol
+    if (this.hasSymbolSearchTarget) this.symbolSearchTarget.value = this.selectedSymbol
+    if (this.hasAlertSymbolTarget) this.alertSymbolTarget.textContent = this.selectedSymbol
+    this.searchResultsTarget.innerHTML = ""
+  }
+
+  escape(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+    }[c]))
+  }
+
+  // ----- Step navigation -----
+
   async nextStep(e) {
     e.preventDefault()
     const ok = await this.saveStep(this.currentStep)
     if (!ok) return
-    if (this.currentStep < 5) this.showStep(this.currentStep + 1)
+    if (this.currentStep < this.totalStepsValue) this.showStep(this.currentStep + 1)
   }
 
   prevStep(e) {
@@ -43,7 +101,7 @@ export default class extends Controller {
 
   skipStep(e) {
     e.preventDefault()
-    if (this.currentStep < 5) this.showStep(this.currentStep + 1)
+    if (this.currentStep < this.totalStepsValue) this.showStep(this.currentStep + 1)
   }
 
   showStep(step) {
@@ -56,43 +114,9 @@ export default class extends Controller {
       target.style.display = "block"
       target.classList.add("active")
     }
-    this.progressBarTarget.style.width = `${(step / 5) * 100}%`
+    this.progressBarTarget.style.width = `${(step / this.totalStepsValue) * 100}%`
     this.stepNumTarget.textContent = step
     this.currentStep = step
-
-    if (step === 3 && this.selectedStocks.length > 0) {
-      this.alertSymbolTarget.textContent = this.selectedStocks[0]
-    }
-  }
-
-  toggleStock(e) {
-    e.preventDefault()
-    const sym = e.currentTarget.dataset.symbol
-    const idx = this.selectedStocks.indexOf(sym)
-    if (idx >= 0) {
-      this.selectedStocks.splice(idx, 1)
-      e.currentTarget.classList.remove("selected")
-    } else {
-      this.selectedStocks.push(sym)
-      e.currentTarget.classList.add("selected")
-    }
-    this.renderSelected()
-  }
-
-  renderSelected() {
-    this.selectedStocksTarget.innerHTML = this.selectedStocks.map(s =>
-      `<div class="glass-pill"><span>${s}</span><button data-action="click->onboarding#removeStock" data-symbol="${s}">✕</button></div>`
-    ).join("")
-  }
-
-  removeStock(e) {
-    e.preventDefault()
-    const sym = e.currentTarget.dataset.symbol
-    this.selectedStocks = this.selectedStocks.filter(s => s !== sym)
-    this.element.querySelectorAll(".stock-btn").forEach(btn => {
-      if (btn.dataset.symbol === sym) btn.classList.remove("selected")
-    })
-    this.renderSelected()
   }
 
   async saveStep(step) {
@@ -120,37 +144,34 @@ export default class extends Controller {
   }
 
   showStepError(step, messages) {
-    if (step === 4 && this.hasStep4ErrorTarget) {
+    if (step === 3 && this.hasStep3ErrorTarget) {
       if (messages) {
-        this.step4ErrorTarget.textContent = Array.isArray(messages) ? messages.join(" ") : String(messages)
-        this.step4ErrorTarget.style.display = "block"
+        this.step3ErrorTarget.textContent = Array.isArray(messages) ? messages.join(" ") : String(messages)
+        this.step3ErrorTarget.style.display = "block"
       } else {
-        this.step4ErrorTarget.textContent = ""
-        this.step4ErrorTarget.style.display = "none"
+        this.step3ErrorTarget.textContent = ""
+        this.step3ErrorTarget.style.display = "none"
       }
     }
   }
 
   getStepData(step) {
     switch (step) {
-      case 2: return { symbols: this.selectedStocks }
-      case 3: {
+      case 1: return {}
+      case 2: {
+        const symbol = (this.selectedSymbol || (this.hasSymbolSearchTarget ? this.symbolSearchTarget.value : "")).trim().toUpperCase()
         const mode = document.querySelector('input[name="alert-mode"]:checked')?.value || "pct"
         if (mode === "pct") {
           const direction = document.querySelector('input[name="pct-direction"]:checked')?.value || "any"
           const value = this.hasPctValueTarget ? parseFloat(this.pctValueTarget.value || "0") : 0
-          return {
-            symbol: this.selectedStocks[0],
-            alert_type: "price_change_pct",
-            condition: { value, direction }
-          }
+          return { symbol, alert_type: "price_change_pct", condition: { value, direction } }
         } else {
           const dir = document.querySelector('input[name="alert-direction"]:checked')?.value
           const price = this.hasAlertPriceTarget ? this.alertPriceTarget.value : ""
-          return { symbol: this.selectedStocks[0], condition: { direction: dir, price } }
+          return { symbol, condition: { direction: dir, price } }
         }
       }
-      case 4: return {
+      case 3: return {
         email: this.hasEmailInputTarget ? this.emailInputTarget.value : "",
         telegram_chat_id: this.hasTelegramInputTarget ? this.telegramInputTarget.value : "",
         whatsapp_number: this.hasWhatsappInputTarget ? this.whatsappInputTarget.value : ""
@@ -162,7 +183,7 @@ export default class extends Controller {
   finish(e) {
     e.preventDefault()
     const token = document.querySelector('meta[name="csrf-token"]')?.content
-    fetch("/onboarding/step/5", {
+    fetch("/onboarding/step/4", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": token },
       body: JSON.stringify({ data: {} })
