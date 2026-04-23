@@ -45,23 +45,27 @@ class LandingController < ApplicationController
     api_key = ENV["FINNHUB_API_KEY"]
     return render json: [] unless api_key.present?
 
-    results = []
-
-    # Check crypto first
-    crypto = CRYPTO_MAP[query]
-    if crypto
-      quote = fetch_quote(crypto[:symbol], api_key)
-      results << {
-        symbol: crypto[:display],
-        name: crypto[:name],
-        type: crypto[:type],
-        price: quote&.dig("c")&.to_f&.round(2),
-        change: quote&.dig("dp")&.to_f&.round(2),
-        finnhub_symbol: crypto[:symbol]
-      }
+    # Cache the whole enriched response for 60s per query — keystroke-level
+    # dedup + instant repeat searches.
+    payload = Rails.cache.fetch("search:#{query}", expires_in: 60.seconds) do
+      build_search_results(query, api_key)
     end
 
-    # Also search Finnhub for stocks
+    render json: payload
+  rescue => e
+    Rails.logger.error("Search failed: #{e.message}")
+    render json: []
+  end
+
+  private
+
+  def build_search_results(query, api_key)
+    results = []
+
+    # 1) Known crypto mapping.
+    crypto = CRYPTO_MAP[query]
+
+    # 2) Finnhub symbol search (only the list of matches — quotes fetched in parallel below).
     stock_results = Rails.cache.fetch("finnhub_search_#{query}", expires_in: 10.minutes) do
       response = Faraday.get("https://finnhub.io/api/v1/search?q=#{CGI.escape(query)}&token=#{api_key}")
       data = JSON.parse(response.body)
@@ -72,30 +76,33 @@ class LandingController < ApplicationController
       []
     end
 
-    # Enrich top stock results with prices
+    # 3) Build list of every Finnhub symbol we need a quote for (crypto + top 4 stocks) and parallel-fetch in one batch.
+    quote_symbols = []
+    quote_symbols << crypto[:symbol] if crypto
+    stock_results.first(4).each { |r| quote_symbols << r[:symbol] }
+    quotes = quote_symbols.any? ? ParallelQuoteFetcher.new.fetch(quote_symbols) : {}
+
+    if crypto
+      q = quotes[crypto[:symbol]]
+      results << {
+        symbol: crypto[:display],
+        name: crypto[:name],
+        type: crypto[:type],
+        price: q && q[:price]&.round(2),
+        change: q && q[:change_percent]&.round(2),
+        finnhub_symbol: crypto[:symbol]
+      }
+    end
+
     stock_results.first(4).each do |r|
-      quote = fetch_quote(r[:symbol], api_key)
-      if quote && quote["c"].to_f > 0
-        r[:price] = quote["c"].to_f.round(2)
-        r[:change] = quote["dp"].to_f.round(2)
+      q = quotes[r[:symbol]]
+      if q && q[:price] > 0
+        r[:price] = q[:price].round(2)
+        r[:change] = q[:change_percent].round(2)
       end
     end
 
     results.concat(stock_results)
-    render json: results
-  rescue => e
-    Rails.logger.error("Search failed: #{e.message}")
-    render json: []
-  end
-
-  private
-
-  def fetch_quote(symbol, api_key)
-    Rails.cache.fetch("finnhub_quote_#{symbol}", expires_in: 5.minutes) do
-      resp = Faraday.get("https://finnhub.io/api/v1/quote?symbol=#{symbol}&token=#{api_key}")
-      JSON.parse(resp.body)
-    rescue
-      nil
-    end
+    results
   end
 end

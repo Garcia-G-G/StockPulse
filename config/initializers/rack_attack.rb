@@ -15,9 +15,9 @@ Rack::Attack.throttle("notification_test/ip", limit: 5, period: 60.seconds) do |
   req.ip if req.path.include?("/notification_test") || req.path.include?("/notifications/test")
 end
 
-# Custom response handler for throttled requests
-Rack::Attack.throttled_response = lambda { |env|
-  match_data = env["rack.attack.match_data"]
+# Custom response handler for throttled requests (renamed in newer rack-attack).
+Rack::Attack.throttled_responder = lambda { |req|
+  match_data = req.env["rack.attack.match_data"]
   now = Time.now.utc
 
   headers = {
