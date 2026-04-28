@@ -27,7 +27,7 @@ class LandingController < ApplicationController
   LANDING_CRYPTO_SYMBOLS = %w[BINANCE:BTCUSDT BINANCE:ETHUSDT BINANCE:SOLUSDT].freeze
 
   def prices
-    payload = Rails.cache.fetch("landing:prices", expires_in: 30.seconds) do
+    payload = Rails.cache.fetch("landing:prices", expires_in: 60.seconds) do
       quotes = ParallelQuoteFetcher.new.fetch(LANDING_STOCK_SYMBOLS + LANDING_CRYPTO_SYMBOLS)
       quotes.map do |symbol, data|
         display = symbol.sub(/\ABINANCE:/, "").sub(/USDT\z/, "")

@@ -5,16 +5,27 @@ module Api
     class HealthController < BaseController
       skip_before_action :authenticate_user_or_api!, raise: false
 
+      # Liveness/readiness probe.
+      #
+      # Critical components (database, redis) failing -> 503.
+      # Non-critical components (sidekiq) failing -> 200 with status="degraded"
+      # so the app remains reachable when background workers happen to be down.
       def show
-        checks = {
-          status: "ok",
+        db    = database_healthy?
+        redis = redis_healthy?
+        sidekiq = sidekiq_healthy?
+
+        critical_ok = db && redis
+        all_ok = critical_ok && sidekiq
+        status = all_ok ? "ok" : (critical_ok ? "degraded" : "down")
+
+        render json: {
+          status: status,
           timestamp: Time.current.iso8601,
-          database: database_healthy?,
-          redis: redis_healthy?,
-          sidekiq: sidekiq_healthy?
-        }
-        status = checks.values_at(:database, :redis, :sidekiq).all? { |v| v == true } ? :ok : :service_unavailable
-        render json: checks, status: status
+          database: db,
+          redis: redis,
+          sidekiq: sidekiq
+        }, status: critical_ok ? :ok : :service_unavailable
       end
 
       def metrics

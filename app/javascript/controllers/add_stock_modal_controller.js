@@ -3,6 +3,10 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["backdrop", "input", "results", "error"]
 
+  disconnect() {
+    if (this._timer) clearTimeout(this._timer)
+  }
+
   open(event) {
     event?.preventDefault()
     this.hideError()

@@ -8,6 +8,10 @@ export default class extends Controller {
     this.wireDirectionRadios()
   }
 
+  disconnect() {
+    if (this._searchTimer) clearTimeout(this._searchTimer)
+  }
+
   // --- Open / close ---
 
   async open(event) {
